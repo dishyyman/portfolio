@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--
+    The <head> holds information ABOUT the page (title, styles, etc.).
+    Nothing in here shows up on the page itself.
+  -->
+  <head>
+    <meta charset="UTF-8" />
+    <!-- This line makes the site look right on phones -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dish | Portfolio</title>
+
+    <!-- Our own styles -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Font Awesome: gives us free icons like <i class="fa-brands fa-github"></i> -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+
+  <!-- The <body> holds everything you actually see on the page -->
+  <body>
+    <!-- ===== NAVIGATION BAR ===== -->
+    <!-- Links starting with # jump to the section with that id on this page -->
+    <nav>
+      <h2 id="logo"><a href="index.html">Dish</a></h2>
+      <ul class="navigation-items">
+        <li><a href="#bio">Bio</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <!-- ===== BIO ===== -->
+      <section id="bio">
+        <div class="about-me-container">
+          <div class="about-me-text">
+            <h2>Bio</h2>
+            <p>
+              I'm Michael Dishno and I'm a creative with many different hobbies,
+              the latest of which is learning to code!
+            </p>
+            <p>
+              In my professional life, I studied Project Management and
+              Entrepreneurship (through a Business Admin. degree) and work as a
+              Technical Project Specialist. I manage projects, development and
+              interdepartmental, at a Fintech startup that is nearly ten years
+              old.
+            </p>
+            <p>
+              In my personal life, I like to stay active and creative. Growing
+              up in Southern California, I've always surfed and skated and done
+              anything to enjoy the perfect weather California has to offer.
+              I've been a multi-instrumental musician for 15+ years and dabble
+              in other creative hobbies, such as writing, gaming, TTRPG design,
+              and now coding!
+            </p>
+            <p>
+              Fun fact! I've been coding for
+              <!-- script.js fills in this number and updates it every second -->
+              <span id="time-container">0</span> seconds!
+            </p>
+          </div>
+
+          <!-- To use your own photo: put it in the images folder and change src -->
+          <img
+            src="images/photo-of-me.jpeg"
+            alt="A photo of Michael Dishno"
+            class="portrait"
+          />
+        </div>
+      </section>
+
+      <!-- ===== PROJECTS ===== -->
+      <!--
+        Each project is a <details> element: click the title to open/close it.
+        To add a project, copy one whole <details>...</details> block and edit it.
+      -->
+      <section id="projects">
+        <h2>Projects</h2>
+
+        <details class="project">
+          <summary><h3>This portfolio website</h3></summary>
+          <p>
+            My first website, built with plain HTML and CSS. It's where I'll
+            show the things I build as I learn.
+          </p>
+          <!-- Optional: add a screenshot like this:
+          <img src="images/my-project.png" alt="Screenshot of my project" class="project-image" />
+          -->
+        </details>
+
+        <details class="project">
+          <summary><h3>Project two</h3></summary>
+          <p>Describe what the project does and what you learned building it.</p>
+        </details>
+
+        <details class="project">
+          <summary><h3>Project three</h3></summary>
+          <p>Describe what the project does and what you learned building it.</p>
+        </details>
+      </section>
+
+      <!-- ===== SKILLS ===== -->
+      <!--
+        Each <i> is an icon from Font Awesome. Find more at
+        https://fontawesome.com/search?ic=brands  (copy the class names).
+        The "title" text shows up when you hover over an icon.
+      -->
+      <section id="skills">
+        <h2>Skills</h2>
+        <div id="skills-container">
+          <i class="fa-brands fa-html5" title="HTML"></i>
+          <i class="fa-brands fa-css3-alt" title="CSS"></i>
+          <i class="fa-brands fa-js" title="JavaScript"></i>
+          <i class="fa-brands fa-git-alt" title="Git"></i>
+          <i class="fa-brands fa-github" title="GitHub"></i>
+          <i class="fa-solid fa-terminal" title="Terminal"></i>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>Made with <span class="heart">♥</span> by Dish</footer>
+
+    <!-- JavaScript goes at the end so the page loads first -->
+    <script src="script.js"></script>
+  </body>
+</html>
