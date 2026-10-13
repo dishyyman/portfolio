@@ -1,6 +1,6 @@
-# My Portfolio
+# mdishno-portfolio
 
-My personal portfolio website, built with plain HTML, CSS, and a little JavaScript.
+My portfolio to build on as I create projects. Built with plain HTML, CSS, and a little JavaScript.
 
 ## Files
 
