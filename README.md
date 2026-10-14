@@ -11,10 +11,19 @@ My portfolio to build on as I create projects. Built with plain HTML, CSS, and a
 | `style.css` | All the styling (colors, fonts, layout) for both pages |
 | `script.js` | The "I've been coding for X seconds" counter |
 | `images/` | Photos and screenshots used on the site |
+| `storytime-reader/` | **Storytime Reader**: paste text and hear it read aloud with highlighting. It has its own page, styles and scripts. |
 
 ## How to view it
 
 Double-click `index.html` to open it in your browser. After editing a file, save it and refresh the browser.
+
+**Storytime Reader needs a local server.** Its JavaScript uses modules, which browsers won't load from a double-clicked file. In this folder, run:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then open http://localhost:8000. If a change doesn't show up, do a hard refresh (**Cmd+Shift+R**).
 
 ## Things to edit first
 
