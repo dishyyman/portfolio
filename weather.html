@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dish | Weather</title>
+  <meta name="theme-color" content="#141517">
+  <meta name="description" content="Search any city for current weather, a 7-day forecast, air quality and surf conditions, using the free Open-Meteo APIs.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+  <!-- Same fonts as the rest of the portfolio -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Proza+Libre:wght@700&display=swap">
+  <!-- Font Awesome: the weather icons, like <i class="fa-solid fa-cloud-sun"></i> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/weather.css">
+  <script type="module" src="js/weather.js"></script>
+</head>
+<body>
+  <main>
+    <!-- Same nav as the other portfolio pages. -->
+    <nav>
+      <h2 id="logo"><a href="index.html">Dish</a></h2>
+      <ul class="navigation-items">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="index.html#skills">Skills</a></li>
+        <li><a href="index.html#experience">Experience</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h1>Weather</h1>
+      <p class="tagline">Search any city for the forecast, air quality and surf.</p>
+    </header>
+
+    <!-- ===== SEARCH ===== -->
+    <section class="search-panel" aria-label="Choose a place">
+      <form id="search-form" class="search-form" role="search">
+        <label for="search-input" class="visually-hidden">City name</label>
+        <input id="search-input" type="search" placeholder="Search a city, like Honolulu" autocomplete="off" required minlength="2">
+        <button type="submit" class="text-btn filled">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
+        </button>
+      </form>
+
+      <div class="search-extras">
+        <button id="locate-btn" type="button" class="text-btn">
+          <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Use my location
+        </button>
+
+        <!-- aria-pressed tells screen readers which unit is switched on. -->
+        <div class="unit-toggle" role="group" aria-label="Units">
+          <button type="button" data-units="imperial" aria-pressed="true">°F</button>
+          <button type="button" data-units="metric" aria-pressed="false">°C</button>
+        </div>
+      </div>
+
+      <!-- When a search matches more than one place (like "Springfield"), the best
+           match loads and the others are listed here to pick from instead. -->
+      <p id="results-label" class="results-label" hidden>Not the one you meant?</p>
+      <ul id="results" class="results" aria-labelledby="results-label" hidden></ul>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <!-- ===== WEATHER ===== -->
+    <!-- Hidden until the first forecast arrives. js/weather.js fills in every panel. -->
+    <div id="weather" class="weather" hidden>
+      <!-- Shows while new weather is loading. -->
+      <div id="loading-bar" class="loading-bar" aria-hidden="true"><div></div></div>
+
+      <section class="card current-card" aria-labelledby="place-name">
+        <h2 id="place-name"></h2>
+        <p id="place-detail" class="muted"></p>
+
+        <div class="current-main">
+          <i id="current-icon" class="fa-solid current-icon" aria-hidden="true"></i>
+          <span id="current-temp" class="current-temp"></span>
+          <div>
+            <p id="current-label" class="current-label"></p>
+            <p id="current-feels" class="muted"></p>
+          </div>
+        </div>
+
+        <dl id="current-stats" class="stats"></dl>
+      </section>
+
+      <section class="card hourly-card" aria-labelledby="hourly-heading">
+        <h2 id="hourly-heading">Next 24 hours</h2>
+        <!-- tabindex="0" lets keyboard users scroll the strip with the arrow keys. -->
+        <ol id="hourly" class="hourly" tabindex="0" aria-labelledby="hourly-heading"></ol>
+      </section>
+
+      <section class="card daily-card" aria-labelledby="daily-heading">
+        <h2 id="daily-heading">7-day forecast</h2>
+        <ol id="daily" class="daily"></ol>
+      </section>
+
+      <section id="air-card" class="card air-card" aria-labelledby="air-heading">
+        <h2 id="air-heading">Air quality</h2>
+        <div class="aqi">
+          <span id="aqi-value" class="aqi-value"></span>
+          <span id="aqi-label" class="aqi-label"></span>
+        </div>
+        <dl id="air-stats" class="stats"></dl>
+      </section>
+
+      <!-- Hidden for places away from the ocean (the Marine API has no waves there). -->
+      <section id="surf-card" class="card surf-card" aria-labelledby="surf-heading">
+        <h2 id="surf-heading"><i class="fa-solid fa-water" aria-hidden="true"></i> Surf</h2>
+        <dl id="surf-stats" class="stats"></dl>
+        <h3>Biggest waves each day</h3>
+        <ol id="surf-days" class="surf-days"></ol>
+      </section>
+    </div>
+  </main>
+
+  <!-- Open-Meteo's free data is shared under CC BY 4.0, which asks us to credit them. -->
+  <footer>
+    <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
+    (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>)
+  </footer>
+</body>
+</html>

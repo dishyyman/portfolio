@@ -1,0 +1,583 @@
+/* Colors live here so they're easy to change in one place (same as Storytime Reader). */
+:root {
+  color-scheme: dark; /* tells the browser to draw inputs and scrollbars dark too */
+  --bg: #141517;        /* soft black */
+  --surface: #1c1e21;   /* slightly lighter, for the cards */
+  --text: #e8e6e1;      /* soft white */
+  --muted: #9ea2a8;
+  --border: #33363b;
+  --accent: #5cc98f;    /* green, for buttons */
+  --on-accent: #0e1a13; /* dark color for text drawn on green */
+
+  /* Air quality colors, softened to sit well on the dark background */
+  --aqi-good: #5cc98f;
+  --aqi-moderate: #e3c35b;
+  --aqi-sensitive: #f0954f;
+  --aqi-unhealthy: #e8615a;
+  --aqi-very-unhealthy: #b07ce8;
+  --aqi-hazardous: #c25470;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Open Sans", system-ui, sans-serif; /* matches the portfolio */
+  line-height: 1.5;
+}
+
+main {
+  max-width: 900px; /* same width as the homepage */
+  margin: 0 auto;
+  padding: 0 16px 32px;
+}
+
+h1,
+h2,
+#logo {
+  font-family: "Proza Libre", sans-serif; /* matches the portfolio headings */
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+h3 {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--text);
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ---------- Portfolio nav (same layout as the portfolio's style.css) ---------- */
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+#logo {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+nav a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: var(--accent);
+}
+
+.navigation-items {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 0 auto; /* pushes the links to the right */
+  padding: 0;
+  list-style-type: none;
+}
+
+.navigation-items li {
+  margin: 8px;
+}
+
+/* On phones the links go on their own row, a little tighter so they all fit */
+@media (max-width: 600px) {
+  .navigation-items {
+    width: 100%;
+    margin-left: -6px;
+  }
+
+  .navigation-items li {
+    margin: 8px 6px;
+  }
+}
+
+.tagline {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+/* ---------- Search ---------- */
+
+.search-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.search-form {
+  display: flex;
+  flex: 1 1 320px;
+  gap: 8px;
+}
+
+.search-form input {
+  flex: 1;
+  min-width: 0; /* lets the box shrink on narrow phones */
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.search-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+button {
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The main button is filled in green. */
+.text-btn.filled {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+/* °F / °C: two buttons joined together; the one switched on is filled. */
+.unit-toggle {
+  display: inline-flex;
+}
+
+.unit-toggle button {
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.unit-toggle button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.unit-toggle button:last-child {
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+
+.unit-toggle button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* "Not the one you meant?" and the other places a search matched. */
+.results-label {
+  width: 100%;
+  margin-bottom: -6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.result {
+  width: 100%;
+  padding: 10px 14px;
+  border-color: var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.result strong {
+  color: var(--text);
+}
+
+.result:hover {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible,
+.hourly:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.status {
+  min-height: 1.5em;
+  margin: 12px 0;
+  color: var(--muted);
+}
+
+/* ---------- Weather cards ---------- */
+
+/* On wide screens: current, hourly and the 7 days on the left; air and surf on the right. */
+.weather {
+  position: relative; /* so the loading bar can sit on its top edge */
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-areas:
+    "current current"
+    "hourly hourly"
+    "daily air"
+    "daily surf";
+  align-items: start;
+  gap: 16px;
+}
+
+.current-card { grid-area: current; }
+.hourly-card { grid-area: hourly; }
+.daily-card { grid-area: daily; }
+.air-card { grid-area: air; }
+.surf-card { grid-area: surf; }
+
+/* On phones everything stacks in one column. */
+@media (max-width: 700px) {
+  .weather {
+    grid-template-columns: 1fr;
+    grid-template-areas: "current" "hourly" "daily" "air" "surf";
+  }
+}
+
+.card {
+  min-width: 0; /* lets the hourly strip scroll instead of stretching the page */
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+/* ---------- Current conditions ---------- */
+
+.current-card h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.current-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 16px 0;
+}
+
+.current-icon {
+  font-size: 3rem;
+  color: var(--accent);
+}
+
+.current-temp {
+  font-family: "Proza Libre", sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.current-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+/* Label-and-value boxes, used in the current, air and surf cards. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.stat dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stat dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* The arrow turns to point where the wind or swell is heading. */
+.direction-arrow {
+  color: var(--accent);
+}
+
+/* ---------- Next 24 hours ---------- */
+
+.hourly {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 8px;
+  overflow-x: auto; /* scrolls sideways */
+  list-style-type: none;
+}
+
+.hour {
+  display: flex;
+  flex: 0 0 64px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.hour-time {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.hour-temp {
+  font-weight: 600;
+}
+
+.weather-icon {
+  position: relative; /* keeps its hidden label inside the scrolling strip */
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+.rain {
+  min-height: 1.2em; /* keeps every column the same height */
+  color: #7fb6e8;     /* soft blue for rain */
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* ---------- 7-day forecast ---------- */
+
+.daily {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+/* Each row: day · icon · rain · low · bar · high */
+.day {
+  display: grid;
+  grid-template-columns: 3.5em 1.6em 3.2em 2.5em 1fr 2.5em;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.day:last-child {
+  border-bottom: none;
+}
+
+.day-name {
+  font-weight: 600;
+}
+
+.day-low {
+  color: var(--muted);
+  text-align: right;
+}
+
+.day-high {
+  font-weight: 600;
+}
+
+/* The range bar: a faint track with the day's low-to-high in green. */
+.range {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg);
+}
+
+.range-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 6px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+/* ---------- Air quality ---------- */
+
+.aqi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.aqi-value {
+  font-family: "Proza Libre", sans-serif;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* A pill in the band's color, e.g. green for Good. */
+.aqi-label {
+  --band: var(--muted);
+  padding: 2px 10px;
+  border: 1px solid var(--band);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--band) 15%, transparent);
+  color: var(--band);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.aqi-good { --band: var(--aqi-good); }
+.aqi-moderate { --band: var(--aqi-moderate); }
+.aqi-sensitive { --band: var(--aqi-sensitive); }
+.aqi-unhealthy { --band: var(--aqi-unhealthy); }
+.aqi-very-unhealthy { --band: var(--aqi-very-unhealthy); }
+.aqi-hazardous { --band: var(--aqi-hazardous); }
+
+/* ---------- Surf ---------- */
+
+.surf-card h2 i {
+  color: var(--accent);
+}
+
+.surf-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.surf-days li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 0.9rem;
+}
+
+/* ---------- Loading bar (same as Storytime Reader) ---------- */
+
+.loading-bar {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent); /* faint track */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* It waits a moment before appearing, so it doesn't flash on fast connections. */
+.loading-bar.active {
+  opacity: 1;
+  transition-delay: 0.3s;
+}
+
+.loading-bar div {
+  width: 40%;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar div {
+    width: 100%;
+    animation: none;
+  }
+}
+
+/* ---------- Footer ---------- */
+
+footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Hidden on screen but still read by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
