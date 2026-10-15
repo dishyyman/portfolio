@@ -2,26 +2,27 @@
 //
 // Everything comes from Open-Meteo (https://open-meteo.com), which is free for
 // personal projects and needs no API key, so the browser can call it directly.
-// We use four of its APIs:
-//   - Geocoding:   a city name → its latitude and longitude
+// We use three of its weather APIs:
 //   - Forecast:    current weather, the next 24 hours, and 7 days
 //   - Air Quality: US AQI, fine dust (PM2.5), ozone and UV right now
 //   - Marine:      waves, swell and water temperature (only near the ocean)
+// Turning typed names into places is in place-search.js.
 //
-// 1. The visitor searches a city (or uses their location) → we get coordinates.
+// 1. The visitor picks a place from the search box (or uses their location) → we get coordinates.
 // 2. loadPlace() asks the Forecast, Air Quality and Marine APIs at the same time.
 // 3. Each answer fills in its own panel. If Air Quality or Marine fails or has
 //    no data, only that panel hides; the forecast still shows.
 
-import { describeWeather, aqiCategory } from './weather-codes.js';
+import { apiUrl, getJSON, friendlyError, wasCancelled } from './api.js';
+import { searchPlaces, guessPlaces, nameForCoordinates, flagEmoji } from './place-search.js';
+import { describeWeather, aqiCategory, uvCategory } from './weather-codes.js';
 
 const els = {
   form: document.getElementById('search-form'),
   input: document.getElementById('search-input'),
   locate: document.getElementById('locate-btn'),
   unitButtons: document.querySelectorAll('.unit-toggle button'),
-  results: document.getElementById('results'),
-  resultsLabel: document.getElementById('results-label'),
+  suggestions: document.getElementById('suggestions'),
   status: document.getElementById('status'),
   weather: document.getElementById('weather'),
   loadingBar: document.getElementById('loading-bar'),
@@ -38,6 +39,11 @@ const els = {
   aqiValue: document.getElementById('aqi-value'),
   aqiLabel: document.getElementById('aqi-label'),
   airStats: document.getElementById('air-stats'),
+  aqiFullLabel: document.getElementById('aqi-full-label'),
+  uvHalf: document.getElementById('uv-half'),
+  uvPointer: document.getElementById('uv-pointer'),
+  uvValue: document.getElementById('uv-value'),
+  uvLabel: document.getElementById('uv-label'),
   surfCard: document.getElementById('surf-card'),
   surfStats: document.getElementById('surf-stats'),
   surfDays: document.getElementById('surf-days'),
@@ -47,6 +53,7 @@ const els = {
 const DEFAULT_PLACE = {
   name: 'Huntington Beach',
   detail: 'California, United States',
+  countryCode: 'US',
   latitude: 33.6603,
   longitude: -117.9992,
 };
@@ -65,35 +72,13 @@ let place = typeof saved?.latitude === 'number' ? saved : DEFAULT_PLACE;
 let units = loadSaved('weather-units') === 'metric' ? 'metric' : 'imperial';
 // Counts requests, so a slow old answer can't replace a newer one.
 let latestRequest = 0;
+// The last forecast shown, so the place name can be redrawn on its own.
+let lastForecast = null;
+
+// What "Use my location" is called until (or unless) we find the town's name.
+const MY_LOCATION = 'Your location';
 
 // ---------- Talking to Open-Meteo ----------
-
-// Builds a URL like https://api.open-meteo.com/v1/forecast?latitude=33.66&...
-function apiUrl(base, params) {
-  const url = new URL(base);
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value);
-  }
-  return url;
-}
-
-// Fetches a URL and returns its JSON. Open-Meteo explains bad requests in a "reason" field.
-async function getJSON(url) {
-  const response = await fetch(url);
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.reason ?? `The weather service had a problem (error ${response.status}).`);
-  }
-  return data;
-}
-
-function searchPlaces(name) {
-  return getJSON(apiUrl('https://geocoding-api.open-meteo.com/v1/search', {
-    name,
-    count: 5,
-    language: 'en',
-  }));
-}
 
 function fetchForecast({ latitude, longitude }) {
   const { temperature_unit, wind_speed_unit, precipitation_unit } = UNIT_PARAMS[units];
@@ -160,7 +145,9 @@ async function loadPlace(newPlace) {
   }
 
   place = newPlace;
+  lastForecast = forecast.value;
   save('weather-place', place);
+  rememberRecent(place);
 
   renderPlace(forecast.value);
   renderCurrent(forecast.value);
@@ -171,14 +158,6 @@ async function loadPlace(newPlace) {
 
   els.weather.hidden = false;
   setStatus('');
-}
-
-// fetch() throws a TypeError when it can't reach the server at all (like when offline).
-function friendlyError(error) {
-  if (error instanceof TypeError) {
-    return "Couldn't reach the weather service. Check your connection and try again.";
-  }
-  return error.message;
 }
 
 // ---------- Drawing each panel ----------
@@ -193,7 +172,7 @@ function renderCurrent(data) {
   const { current, daily } = data;
   const weather = describeWeather(current.weather_code, current.is_day);
 
-  els.currentIcon.className = `fa-solid ${weather.icon} current-icon`;
+  els.currentIcon.className = `fa-solid ${weather.icon} ${weather.colorClass} current-icon`;
   els.currentTemp.textContent = `${Math.round(current.temperature_2m)}°`;
   els.currentLabel.textContent = weather.label;
   els.currentFeels.textContent = `Feels like ${Math.round(current.apparent_temperature)}°`;
@@ -204,7 +183,7 @@ function renderCurrent(data) {
     ['Humidity', `${current.relative_humidity_2m}%`],
     ['Wind', `${Math.round(current.wind_speed_10m)} ${WIND_LABELS[units]} ${compass(current.wind_direction_10m)}`, windArrow(current.wind_direction_10m)],
     ['Rain chance today', `${daily.precipitation_probability_max[0] ?? 0}%`],
-    ['UV index', Math.round(daily.uv_index_max[0])],
+    ['Peak UV today', Math.round(daily.uv_index_max[0])],
     ['Sunrise', time(daily.sunrise[0])],
     ['Sunset', time(daily.sunset[0])],
   ]);
@@ -228,7 +207,7 @@ function renderHourly(data) {
     const item = el('li', 'hour');
     item.append(
       el('span', 'hour-time', label),
-      icon(weather.icon, weather.label),
+      icon(weather),
       el('span', 'hour-temp', `${Math.round(temperature)}°`),
       rainChance(hourly.precipitation_probability[i]),
     );
@@ -259,7 +238,7 @@ function renderDaily(data) {
     const row = el('li', 'day');
     row.append(
       el('span', 'day-name', i === 0 ? 'Today' : formatTime(day, timezone, { weekday: 'short' })),
-      icon(weather.icon, weather.label),
+      icon(weather),
       rainChance(daily.precipitation_probability_max[i]),
       el('span', 'day-low', `${Math.round(low)}°`),
       bar,
@@ -278,17 +257,55 @@ function renderAirQuality(data) {
 
   const category = aqiCategory(current.us_aqi);
   els.aqiValue.textContent = current.us_aqi;
-  els.aqiLabel.textContent = category.label;
+  const infoIcon = el('i', 'fa-solid fa-circle-info');
+  infoIcon.setAttribute('aria-hidden', 'true');
+  els.aqiLabel.replaceChildren(category.short ?? category.label, infoIcon);
+  els.aqiFullLabel.textContent = category.label;
+  els.aqiFullLabel.className = `aqi-full-label ${category.className}`;
   els.aqiLabel.className = `aqi-label ${category.className}`;
+  showAqiDetails(false);
 
   const unit = data.current_units;
   fillStats(els.airStats, [
     ['Fine particles (PM2.5)', `${Math.round(current.pm2_5)} ${unit.pm2_5}`],
     ['Ozone', `${Math.round(current.ozone)} ${unit.ozone}`],
-    ['UV index now', Math.round(current.uv_index)],
   ]);
+
+  renderUv(current.uv_index);
   els.airCard.hidden = false;
 }
+
+// The UV arc runs from 0 to 12. Anything higher (it happens near the equator)
+// puts the knob at the far end.
+const UV_ARC_MAX = 12;
+
+function renderUv(uvIndex) {
+  els.uvHalf.hidden = uvIndex == null;
+  if (uvIndex == null) return;
+
+  const turn = Math.min(uvIndex, UV_ARC_MAX) / UV_ARC_MAX;
+  els.uvPointer.style.setProperty('--uv-turn', turn);
+  els.uvValue.textContent = Math.round(uvIndex);
+  els.uvLabel.textContent = `UV index · ${uvCategory(uvIndex).label}`;
+}
+
+// Hovering the AQI label shows the details (that part is all CSS).
+// Clicking or tapping it keeps them open until you click somewhere else.
+function showAqiDetails(open) {
+  els.aqiLabel.setAttribute('aria-expanded', String(open));
+}
+
+els.aqiLabel.addEventListener('click', () => {
+  showAqiDetails(els.aqiLabel.getAttribute('aria-expanded') !== 'true');
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.aqi-info')) showAqiDetails(false);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') showAqiDetails(false);
+});
 
 function renderSurf(data) {
   const current = data?.current;
@@ -336,12 +353,13 @@ function el(tag, className = '', text = '') {
   return node;
 }
 
-// A Font Awesome icon with a hidden text label for screen readers.
-function icon(name, label) {
+// A weather icon in its natural colors, with a hidden text label for screen readers.
+// "weather" is what describeWeather() returns.
+function icon(weather) {
   const wrapper = el('span', 'weather-icon');
-  const i = el('i', `fa-solid ${name}`);
+  const i = el('i', `fa-solid ${weather.icon} ${weather.colorClass}`);
   i.setAttribute('aria-hidden', 'true');
-  wrapper.append(i, el('span', 'visually-hidden', label));
+  wrapper.append(i, el('span', 'visually-hidden', weather.label));
   return wrapper;
 }
 
@@ -415,66 +433,205 @@ function save(key, value) {
   }
 }
 
-// ---------- Search, location and units ----------
+// ---------- Recent places ----------
 
+const MAX_RECENT = 5;
+
+function loadRecent() {
+  const list = loadSaved('weather-recent');
+  return Array.isArray(list) ? list.filter((p) => typeof p?.latitude === 'number') : [];
+}
+
+// Puts a place at the top of the recent list (moving it there if it's already in it).
+function rememberRecent(newPlace) {
+  if (newPlace.name === MY_LOCATION) return; // not useful without a real name
+  const others = loadRecent().filter((p) => !samePlace(p, newPlace));
+  save('weather-recent', [newPlace, ...others].slice(0, MAX_RECENT));
+}
+
+// Two places within about 1 km of each other count as the same place.
+function samePlace(a, b) {
+  return Math.abs(a.latitude - b.latitude) < 0.01 && Math.abs(a.longitude - b.longitude) < 0.01;
+}
+
+// ---------- Search box with suggestions ----------
+//
+// As the visitor types, we wait until they pause, then ask for matching places
+// and list them under the box. Arrow keys move through the list, Enter picks
+// one, Escape closes it. When the box is empty, it lists recent places instead.
+
+// How long to wait after the last key press before searching. Without this
+// wait, typing "Honolulu" would send 8 requests instead of 1 or 2.
+const DEBOUNCE_MS = 250;
+
+let suggestions = [];        // the places listed right now
+let activeIndex = -1;        // which one the arrow keys have highlighted (-1 = none)
+let debounceTimer = null;
+let searchController = null; // cancels the last search when a new one starts
+
+els.input.addEventListener('input', () => {
+  // The list (and any search still running) is for the old text, so drop it.
+  // Otherwise the arrow keys could pick a place that doesn't match what's typed.
+  cancelSearch();
+  closeSuggestions();
+  debounceTimer = setTimeout(openSuggestions, DEBOUNCE_MS);
+});
+
+els.input.addEventListener('focus', openSuggestions);
+els.input.addEventListener('blur', closeSuggestions);
+
+els.input.addEventListener('keydown', (event) => {
+  const open = !els.suggestions.hidden;
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault(); // don't move the text cursor
+    if (!open) {
+      openSuggestions();
+      return;
+    }
+    const last = suggestions.length - 1;
+    if (event.key === 'ArrowDown') highlight(activeIndex >= last ? 0 : activeIndex + 1);
+    else highlight(activeIndex <= 0 ? last : activeIndex - 1);
+  } else if (event.key === 'Enter' && open && activeIndex >= 0) {
+    event.preventDefault(); // pick the highlighted place instead of submitting the form
+    choose(suggestions[activeIndex]);
+  } else if (event.key === 'Escape' && open) {
+    event.preventDefault(); // just close the list (the browser would also clear the box)
+    cancelSearch(); // so a search that's still running can't open it again
+    closeSuggestions();
+  }
+});
+
+// Pressing Enter (with nothing highlighted) or clicking Search: go to the best match.
 els.form.addEventListener('submit', async (event) => {
   event.preventDefault(); // stay on this page instead of submitting the form
-  const name = els.input.value.trim();
-  if (name.length < 2) {
+  const query = els.input.value.trim();
+  if (query.length < 2) {
     setStatus('Type at least 2 letters to search.');
     return;
   }
-
-  hideOtherMatches();
-  setStatus(`Searching for “${name}”…`);
-  let data;
-  try {
-    data = await searchPlaces(name);
-  } catch (error) {
-    setStatus(friendlyError(error));
-    return;
-  }
-
-  // The Geocoding API leaves "results" out entirely when nothing matches.
-  const matches = (data.results ?? []).map((result) => ({
-    name: result.name,
-    detail: [result.admin1, result.country].filter(Boolean).join(', '),
-    latitude: result.latitude,
-    longitude: result.longitude,
-  }));
-
-  if (matches.length === 0) {
-    setStatus(`No places found for “${name}”. Check the spelling, or try a nearby city.`);
-    return;
-  }
-  // Results come best match first, so load that one and offer the rest.
-  loadPlace(matches[0]);
-  showOtherMatches(matches.slice(1));
+  cancelSearch(); // search now instead of waiting for the pause
+  const found = await findPlaces(query);
+  if (found?.places.length > 0) choose(found.places[0]);
 });
 
-// Lists the other places a search matched, as buttons to switch to.
-function showOtherMatches(matches) {
-  els.results.replaceChildren();
-  for (const match of matches) {
-    const button = el('button', 'result');
-    button.type = 'button';
-    button.append(el('strong', '', match.name), ` ${match.detail}`);
-    button.addEventListener('click', () => {
-      hideOtherMatches();
-      loadPlace(match);
-    });
-    const item = el('li');
-    item.append(button);
-    els.results.append(item);
+// Shows recent places for an empty box, or suggestions for what's typed.
+async function openSuggestions() {
+  const query = els.input.value.trim();
+  if (query.length < 2) {
+    cancelSearch();
+    const recent = loadRecent();
+    if (recent.length > 0) showSuggestions(recent, 'Recent', true);
+    else closeSuggestions();
+    return;
   }
-  els.results.hidden = matches.length === 0;
-  els.resultsLabel.hidden = matches.length === 0;
+
+  const found = await findPlaces(query);
+  // Skip it if the search was cancelled, or the visitor has left the box.
+  if (!found || document.activeElement !== els.input) return;
+  if (found.places.length === 0) closeSuggestions();
+  else showSuggestions(found.places, found.guessed ? 'Did you mean…?' : '');
 }
 
-function hideOtherMatches() {
-  els.results.hidden = true;
-  els.resultsLabel.hidden = true;
+// Asks Open-Meteo first. If it finds nothing, it's probably a typo, so ask Photon to guess.
+// Returns { places, guessed }, or null if the search was cancelled or failed.
+async function findPlaces(query) {
+  searchController?.abort();
+  const controller = new AbortController();
+  searchController = controller;
+  const { signal } = controller;
+
+  try {
+    let places = await searchPlaces(query, { signal });
+    let guessed = false;
+    if (places.length === 0) {
+      setStatus(`No exact match for “${query}”. Checking spellings…`);
+      // Photon is only a helper, so if it's down or slow we just say nothing was found.
+      places = await guessPlaces(query, { signal }).catch((error) => {
+        if (wasCancelled(error)) throw error;
+        return [];
+      });
+      guessed = true;
+    }
+    if (signal.aborted) return null;
+
+    setStatus(places.length > 0 ? '' : `No places found for “${query}”. Check the spelling, or try a nearby city.`);
+    return { places, guessed };
+  } catch (error) {
+    if (!wasCancelled(error)) setStatus(friendlyError(error));
+    return null;
+  }
 }
+
+function showSuggestions(places, note = '', isRecent = false) {
+  suggestions = places;
+  activeIndex = -1;
+  els.input.removeAttribute('aria-activedescendant');
+  els.suggestions.replaceChildren();
+  els.suggestions.setAttribute('aria-label', note || 'Places');
+
+  if (note) {
+    // Already read out as the list's label, so screen readers skip this copy.
+    const heading = el('li', 'suggestions-note', note);
+    heading.setAttribute('role', 'presentation');
+    heading.setAttribute('aria-hidden', 'true');
+    els.suggestions.append(heading);
+  }
+
+  places.forEach((suggestion, i) => {
+    const option = el('li', 'suggestion');
+    option.id = `suggestion-${i}`;
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-selected', 'false');
+
+    // A clock for recent places, otherwise the country's flag.
+    const marker = el('span', 'suggestion-icon', isRecent ? '' : flagEmoji(suggestion.countryCode));
+    if (isRecent) marker.append(el('i', 'fa-solid fa-clock-rotate-left'));
+    marker.setAttribute('aria-hidden', 'true');
+    option.append(marker, el('span', '', ''));
+    option.lastChild.append(el('strong', '', suggestion.name), suggestion.detail ? ` ${suggestion.detail}` : '');
+
+    // mousedown would normally take focus away from the box (closing the list
+    // before the click lands), so we keep the focus where it is.
+    option.addEventListener('mousedown', (event) => event.preventDefault());
+    option.addEventListener('click', () => choose(suggestion));
+    els.suggestions.append(option);
+  });
+
+  els.suggestions.hidden = false;
+  els.input.setAttribute('aria-expanded', 'true');
+}
+
+function highlight(index) {
+  els.suggestions.querySelector('[aria-selected="true"]')?.setAttribute('aria-selected', 'false');
+  activeIndex = index;
+  const option = document.getElementById(`suggestion-${index}`);
+  option.setAttribute('aria-selected', 'true');
+  option.scrollIntoView({ block: 'nearest' });
+  // Focus stays in the text box; this tells screen readers which option is highlighted.
+  els.input.setAttribute('aria-activedescendant', option.id);
+}
+
+function cancelSearch() {
+  clearTimeout(debounceTimer);
+  searchController?.abort();
+}
+
+function closeSuggestions() {
+  els.suggestions.hidden = true;
+  els.input.setAttribute('aria-expanded', 'false');
+  els.input.removeAttribute('aria-activedescendant');
+  activeIndex = -1;
+}
+
+function choose(chosen) {
+  cancelSearch();
+  closeSuggestions();
+  els.input.value = '';
+  loadPlace(chosen);
+}
+
+// ---------- Use my location ----------
 
 els.locate.addEventListener('click', () => {
   if (!navigator.geolocation) {
@@ -483,10 +640,28 @@ els.locate.addEventListener('click', () => {
   }
   setStatus('Finding your location…');
   navigator.geolocation.getCurrentPosition(
-    ({ coords }) => {
-      hideOtherMatches();
-      // Open-Meteo can't turn coordinates back into a city name, so we keep it simple.
-      loadPlace({ name: 'Your location', detail: '', latitude: coords.latitude, longitude: coords.longitude });
+    async ({ coords }) => {
+      closeSuggestions();
+      // Two decimal places is about 1 km: plenty for weather, and it shares
+      // less about exactly where the visitor is with the services we call.
+      const here = {
+        name: MY_LOCATION,
+        detail: '',
+        latitude: Number(coords.latitude.toFixed(2)),
+        longitude: Number(coords.longitude.toFixed(2)),
+      };
+      // Start loading the weather right away; the town's name can arrive after.
+      loadPlace(here);
+
+      const named = await nameForCoordinates(here.latitude, here.longitude).catch(() => null);
+      if (!named) return; // keep calling it "Your location"
+      Object.assign(here, { name: named.name, detail: named.detail, countryCode: named.countryCode });
+      // If the weather already showed up, redraw the name and remember it.
+      if (place === here) {
+        renderPlace(lastForecast);
+        save('weather-place', place);
+        rememberRecent(place);
+      }
     },
     (error) => {
       setStatus(error.code === error.PERMISSION_DENIED
@@ -496,6 +671,8 @@ els.locate.addEventListener('click', () => {
     { timeout: 10000 },
   );
 });
+
+// ---------- Units ----------
 
 els.unitButtons.forEach((button) => {
   button.addEventListener('click', () => {

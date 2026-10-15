@@ -34,31 +34,30 @@
     </header>
 
     <!-- ===== SEARCH ===== -->
-    <section class="search-panel" aria-label="Choose a place">
+    <section aria-label="Choose a place">
       <form id="search-form" class="search-form" role="search">
-        <label for="search-input" class="visually-hidden">City name</label>
-        <input id="search-input" type="search" placeholder="Search a city, like Honolulu" autocomplete="off" required minlength="2">
-        <button type="submit" class="text-btn filled">
-          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
-        </button>
-      </form>
-
-      <div class="search-extras">
-        <button id="locate-btn" type="button" class="text-btn">
-          <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Use my location
-        </button>
-
-        <!-- aria-pressed tells screen readers which unit is switched on. -->
-        <div class="unit-toggle" role="group" aria-label="Units">
-          <button type="button" data-units="imperial" aria-pressed="true">°F</button>
-          <button type="button" data-units="metric" aria-pressed="false">°C</button>
+        <label for="search-input" class="visually-hidden">City or ZIP code</label>
+        <!-- A "combobox": a text box with a list of suggestions under it.
+             The aria-* attributes tell screen readers the list is there and which
+             suggestion is highlighted (the pattern is at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/). -->
+        <div class="combobox">
+          <input id="search-input" type="search" placeholder="Search a city or ZIP code" autocomplete="off" spellcheck="false" required minlength="2"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions">
+          <ul id="suggestions" class="suggestions" role="listbox" aria-label="Places" hidden></ul>
         </div>
-      </div>
 
-      <!-- When a search matches more than one place (like "Springfield"), the best
-           match loads and the others are listed here to pick from instead. -->
-      <p id="results-label" class="results-label" hidden>Not the one you meant?</p>
-      <ul id="results" class="results" aria-labelledby="results-label" hidden></ul>
+        <!-- Search and "Use my location", joined into one button with two halves.
+             They only show icons, so aria-label gives each a name for screen readers
+             and title shows that name as a tooltip when you hover. -->
+        <div class="search-actions">
+          <button type="submit" class="search-btn" aria-label="Search" title="Search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          </button>
+          <button id="locate-btn" type="button" class="locate-btn" aria-label="Use my location" title="Use my location">
+            <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+          </button>
+        </div>
+      </form>
     </section>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -70,8 +69,19 @@
       <div id="loading-bar" class="loading-bar" aria-hidden="true"><div></div></div>
 
       <section class="card current-card" aria-labelledby="place-name">
-        <h2 id="place-name"></h2>
-        <p id="place-detail" class="muted"></p>
+        <!-- The place on the left, the °F / °C switch in the top-right corner. -->
+        <div class="current-header">
+          <div>
+            <h2 id="place-name"></h2>
+            <p id="place-detail" class="muted"></p>
+          </div>
+
+          <!-- aria-pressed tells screen readers which unit is switched on. -->
+          <div class="unit-toggle" role="group" aria-label="Units">
+            <button type="button" data-units="imperial" aria-pressed="true">°F</button>
+            <button type="button" data-units="metric" aria-pressed="false">°C</button>
+          </div>
+        </div>
 
         <div class="current-main">
           <i id="current-icon" class="fa-solid current-icon" aria-hidden="true"></i>
@@ -98,11 +108,35 @@
 
       <section id="air-card" class="card air-card" aria-labelledby="air-heading">
         <h2 id="air-heading">Air quality</h2>
-        <div class="aqi">
-          <span id="aqi-value" class="aqi-value"></span>
-          <span id="aqi-label" class="aqi-label"></span>
+        <!-- Two halves that line up row by row: a label or picture, a big number, a caption. -->
+        <div class="air-grid">
+          <div class="air-half">
+            <!-- The label is a button: hover it (or tap it on a phone) to see what's in the air. -->
+            <div class="aqi-info">
+              <button id="aqi-label" type="button" class="aqi-label" aria-expanded="false" aria-controls="aqi-details"></button>
+              <div id="aqi-details" class="aqi-details">
+                <p id="aqi-full-label" class="aqi-full-label"></p>
+                <p class="muted">What's in the air now</p>
+                <dl id="air-stats" class="stats"></dl>
+              </div>
+            </div>
+            <span id="aqi-value" class="air-number"></span>
+            <span class="air-caption">US AQI</span>
+          </div>
+
+          <div id="uv-half" class="air-half">
+            <!-- An arc from 0 to 12 in the UV index colors, with a marker at the current value.
+                 Screen readers skip the picture and read the number and caption below it. -->
+            <div class="uv-gauge" aria-hidden="true">
+              <div class="uv-arc"></div>
+              <div id="uv-pointer" class="uv-pointer"><span></span></div>
+              <span class="uv-end uv-end-low">0</span>
+              <span class="uv-end uv-end-high">12</span>
+            </div>
+            <span id="uv-value" class="air-number"></span>
+            <span id="uv-label" class="air-caption"></span>
+          </div>
         </div>
-        <dl id="air-stats" class="stats"></dl>
       </section>
 
       <!-- Hidden for places away from the ocean (the Marine API has no waves there). -->
@@ -115,10 +149,12 @@
     </div>
   </main>
 
-  <!-- Open-Meteo's free data is shared under CC BY 4.0, which asks us to credit them. -->
+  <!-- Open-Meteo (CC BY 4.0) and OpenStreetMap (ODbL), which Photon uses, both ask to be credited. -->
   <footer>
     <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
-    (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>)
+    (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>).
+    Place search also uses <a href="https://photon.komoot.io/">Photon</a>
+    with data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
   </footer>
 </body>
 </html>

@@ -7,7 +7,7 @@ My portfolio to build on as I create projects. Built from scratch with plain HTM
 ## Projects
 
 - **[Storytime Reader](https://dishyyman.github.io/portfolio/storytime-reader.html)**: paste any text and hear it read aloud, with each sentence and word highlighted as it's spoken. It can use your browser's built-in voices or Kokoro, an open-source AI voice that runs on your device. Code: `storytime-reader.html`, `css/storytime-reader.css`, and the `js/storytime-reader.js`, `js/ai-voice.js`, `js/ai-worker.js` scripts.
-- **[Weather](https://dishyyman.github.io/portfolio/weather.html)**: search any city (or use your location) for current weather, the next 24 hours, a 7-day forecast, air quality, and surf conditions for beach towns. All data comes from the free [Open-Meteo](https://open-meteo.com/) APIs (no API key needed). Code: `weather.html`, `css/weather.css`, and the `js/weather.js`, `js/weather-codes.js` scripts.
+- **[Weather](https://dishyyman.github.io/portfolio/weather.html)**: search any city (or use your location) for current weather, the next 24 hours, a 7-day forecast, air quality, and surf conditions for beach towns. Place search suggests cities as you type, remembers recent places, and guesses misspellings. Weather data comes from the free [Open-Meteo](https://open-meteo.com/) APIs, and [Photon](https://photon.komoot.io/) helps with misspelled searches and naming "Use my location". Neither needs an API key. Code: `weather.html`, `css/weather.css`, and the `js/weather.js`, `js/place-search.js`, `js/api.js`, `js/weather-codes.js` scripts.
 - **This portfolio**: a one-page site with Hero, About, Projects, Skills, Experience and Contact sections. Code: `index.html`, `css/style.css`, `js/script.js`.
 
 ## Files
@@ -24,6 +24,8 @@ My portfolio to build on as I create projects. Built from scratch with plain HTM
 | `js/ai-voice.js`, `js/ai-worker.js` | Storytime Reader's AI voice (runs in a background thread) |
 | `css/weather.css` | Styling for Weather |
 | `js/weather.js` | Weather's main script: talks to the Open-Meteo APIs and fills in each panel |
+| `js/place-search.js` | Weather's place search: Open-Meteo Geocoding, plus Photon for typos and naming your location |
+| `js/api.js` | Shared helpers for calling APIs (`fetch`, timeouts, error messages) |
 | `js/weather-codes.js` | Turns weather codes into words and icons, and AQI numbers into categories |
 | `images/` | Photos and screenshots used on the site |
 | `files/` | Downloadable files, like `resume.pdf` |
@@ -58,3 +60,4 @@ Then open http://localhost:8000. If a change doesn't show up, do a hard refresh 
 - [Font Awesome](https://fontawesome.com/) icons
 - [Google Fonts](https://fonts.google.com/)
 - [Open-Meteo](https://open-meteo.com/) weather data (CC BY 4.0)
+- [Photon](https://photon.komoot.io/) place search, with data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)

@@ -6,8 +6,26 @@
   --text: #e8e6e1;      /* soft white */
   --muted: #9ea2a8;
   --border: #33363b;
-  --accent: #5cc98f;    /* green, for buttons */
+  --accent: #5cc98f;    /* green, for buttons and links: things you can click */
   --on-accent: #0e1a13; /* dark color for text drawn on green */
+
+  /* Weather colors, for the icons (see "Weather icon colors" below) */
+  --sun: #f5c542;
+  --moon: #d9deea;
+  --cloud: #a9b0ba;
+  --fog: #8f969f;
+  --rain: #7fb6e8;
+  --ice: #a8dff0;
+  --snow: #eef4fb;
+  --bolt: #f5c542;
+  --sea: #5aa9e0;
+
+  /* UV index colors, from the WHO's UV scale (softened a little for the dark background) */
+  --uv-low: #5fb84a;
+  --uv-moderate: #f2d43c;
+  --uv-high: #f39a2d;
+  --uv-very-high: #e5533d;
+  --uv-extreme: #b06fd6;
 
   /* Air quality colors, softened to sit well on the dark background */
   --aqi-good: #5cc98f;
@@ -136,33 +154,27 @@ nav a:hover {
 
 /* ---------- Search ---------- */
 
-.search-panel {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .search-form {
   display: flex;
-  flex: 1 1 320px;
   gap: 8px;
 }
 
-.search-form input {
+/* The search box and its suggestion list, which hangs just below it. */
+.combobox {
+  position: relative;
   flex: 1;
   min-width: 0; /* lets the box shrink on narrow phones */
+}
+
+.combobox input {
+  width: 100%;
+  height: 100%;
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--text);
   font: inherit;
-}
-
-.search-extras {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 button {
@@ -173,20 +185,28 @@ button {
   cursor: pointer;
 }
 
-.text-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-weight: 600;
-  white-space: nowrap;
+/* Search and "Use my location" joined into one button: the search half is
+   filled green (the main action), the location half is outlined. */
+.search-actions {
+  display: flex;
 }
 
-/* The main button is filled in green. */
-.text-btn.filled {
+.search-actions button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  font-size: 1.05rem;
+}
+
+.search-btn {
+  border-radius: 6px 0 0 6px;
   background: var(--accent);
   color: var(--on-accent);
+}
+
+.locate-btn {
+  border-left: none;
+  border-radius: 0 6px 6px 0;
 }
 
 button:hover {
@@ -199,8 +219,9 @@ button:hover {
 }
 
 .unit-toggle button {
-  padding: 8px 12px;
+  padding: 4px 10px;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .unit-toggle button:first-child {
@@ -217,40 +238,53 @@ button:hover {
   color: var(--on-accent);
 }
 
-/* "Not the one you meant?" and the other places a search matched. */
-.results-label {
-  width: 100%;
-  margin-bottom: -6px;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.results {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10; /* floats above the weather cards */
+  max-height: 320px;
   margin: 0;
-  padding: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   list-style-type: none;
 }
 
-.result {
-  width: 100%;
-  padding: 10px 14px;
-  border-color: var(--border);
-  border-radius: 6px;
+.suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
   color: var(--muted);
-  text-align: left;
+  cursor: pointer;
 }
 
-.result strong {
+.suggestion strong {
   color: var(--text);
 }
 
-.result:hover {
-  border-color: var(--accent);
-  opacity: 1;
+/* The highlighted suggestion: under the mouse, or picked with the arrow keys. */
+.suggestion:hover,
+.suggestion[aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.suggestion-icon {
+  flex: 0 0 1.4em;
+  text-align: center;
+}
+
+/* A small note at the top of the list, like "Recent" or "Did you mean…?". */
+.suggestions-note {
+  padding: 6px 10px 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 button:focus-visible,
@@ -307,6 +341,18 @@ a:focus-visible,
 
 /* ---------- Current conditions ---------- */
 
+/* The place name on the left, the °F / °C switch pinned to the top right. */
+.current-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.current-header .unit-toggle {
+  flex-shrink: 0; /* long place names wrap instead of squashing the switch */
+}
+
 .current-card h2 {
   margin: 0;
   font-size: 1.5rem;
@@ -322,7 +368,6 @@ a:focus-visible,
 
 .current-icon {
   font-size: 3rem;
-  color: var(--accent);
 }
 
 .current-temp {
@@ -356,7 +401,72 @@ a:focus-visible,
 
 /* The arrow turns to point where the wind or swell is heading. */
 .direction-arrow {
-  color: var(--accent);
+  color: var(--muted);
+}
+
+/* ---------- Weather icon colors ----------
+   Natural colors (yellow sun, grey clouds, blue rain), so green stays the color
+   of things you can click. The class names come from js/weather-codes.js.
+
+   Some icons show two things, like a sun behind a cloud. Font Awesome's free
+   icons are one color, so those get a two-color gradient that's clipped to the
+   icon's shape ("background-clip: text"). The percentages line up the color
+   change with the parts of each icon. */
+
+.sky-clear-day { color: var(--sun); }
+.sky-clear-night { color: var(--moon); }
+.sky-cloudy { color: var(--cloud); }
+.sky-fog { color: var(--fog); }
+.sky-ice { color: var(--ice); }
+.sky-snow { color: var(--snow); }
+.sky-unknown { color: var(--muted); }
+
+.sky-partly-day,
+.sky-partly-night,
+.sky-showers-day,
+.sky-showers-night,
+.sky-rain,
+.sky-storm {
+  color: transparent; /* the gradient behind shows through the icon's shape */
+  -webkit-background-clip: text; /* Safari still needs the prefix */
+  background-clip: text;
+}
+
+/* Sun top-left, cloud bottom-right */
+.sky-partly-day {
+  background-image: linear-gradient(135deg, var(--sun) 45%, var(--cloud) 55%);
+}
+
+/* Moon top-right, cloud bottom-left */
+.sky-partly-night {
+  background-image: linear-gradient(225deg, var(--moon) 45%, var(--cloud) 55%);
+}
+
+/* Like partly cloudy, with blue rain along the bottom (the first gradient sits on top).
+   The rain layer only covers the right 70%, so the sun's lowest ray stays yellow. */
+.sky-showers-day {
+  background-image:
+    linear-gradient(to bottom, transparent 75%, var(--rain) 75%),
+    linear-gradient(135deg, var(--sun) 40%, var(--cloud) 50%);
+  background-size: 70% 100%, 100% 100%;
+  background-position: right, left;
+  background-repeat: no-repeat;
+}
+
+.sky-showers-night {
+  background-image:
+    linear-gradient(to bottom, transparent 75%, var(--rain) 75%),
+    linear-gradient(225deg, var(--moon) 40%, var(--cloud) 50%);
+}
+
+/* Grey cloud, blue rain */
+.sky-rain {
+  background-image: linear-gradient(to bottom, var(--cloud) 62%, var(--rain) 62%);
+}
+
+/* Grey cloud, yellow lightning bolt */
+.sky-storm {
+  background-image: linear-gradient(to bottom, var(--cloud) 64%, var(--bolt) 64%);
 }
 
 /* ---------- Next 24 hours ---------- */
@@ -393,13 +503,12 @@ a:focus-visible,
 
 .weather-icon {
   position: relative; /* keeps its hidden label inside the scrolling strip */
-  color: var(--accent);
   font-size: 1.2rem;
 }
 
 .rain {
   min-height: 1.2em; /* keeps every column the same height */
-  color: #7fb6e8;     /* soft blue for rain */
+  color: var(--rain);
   font-size: 0.8rem;
   white-space: nowrap;
 }
@@ -458,30 +567,191 @@ a:focus-visible,
 
 /* ---------- Air quality ---------- */
 
-.aqi {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+/* Two columns, each with three rows (label or arc, big number, caption).
+   "subgrid" makes both halves share the same rows, so the numbers line up. */
+.air-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
 }
 
-.aqi-value {
+.air-half {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  justify-items: center;
+  row-gap: 6px;
+  text-align: center;
+}
+
+.air-number {
   font-family: "Proza Libre", sans-serif;
   font-size: 2.5rem;
   line-height: 1;
 }
 
-/* A pill in the band's color, e.g. green for Good. */
+.air-caption {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* The label sits at the bottom of its row, just above the number. */
+.aqi-info {
+  position: relative;
+  align-self: end;
+}
+
+/* A pill in the band's color, e.g. green for Good. It's a button, so it opens the details. */
 .aqi-label {
   --band: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 2px 10px;
   border: 1px solid var(--band);
-  border-radius: 999px;
+  border-radius: 14px; /* round ends on one line, still tidy if it wraps on a narrow screen */
   background: color-mix(in srgb, var(--band) 15%, transparent);
   color: var(--band);
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.aqi-label i {
+  font-size: 0.8em;
+}
+
+/* The details box, under the label. Hidden until the label is hovered or tapped. */
+.aqi-details {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0; /* lines up with the label and opens toward the right, so it never runs off a phone screen */
+  z-index: 5; /* floats above the number and caption below */
+  width: max-content;
+  max-width: min(280px, calc(100vw - 64px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
+
+/* Fills the 8px gap above the box, so moving the mouse down to it doesn't close it. */
+.aqi-details::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 0;
+  right: 0;
+  height: 9px;
+}
+
+.aqi-details p {
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+/* The category's full name at the top of the details, in its color. */
+.aqi-details .aqi-full-label {
+  margin-bottom: 2px;
+  color: var(--band);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.aqi-details .stats {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+/* Open when tapped or clicked (js/weather.js sets aria-expanded)... */
+.aqi-label[aria-expanded="true"] + .aqi-details {
+  display: block;
+}
+
+/* ...or while the mouse is over it. Only on devices with a real mouse, because
+   phones "hover" on tap and would leave the box stuck open. */
+@media (hover: hover) {
+  .aqi-info:hover .aqi-details {
+    display: block;
+  }
+}
+
+/* ---------- UV index arc ---------- */
+
+.uv-gauge {
+  position: relative;
+  width: 120px;
+  height: 60px; /* half the width: just the top half of a circle */
+  margin-bottom: 4px;
+}
+
+/* A full circle of color that's cut down to a ring. The colors run clockwise
+   from the left end (UV 0) over the top to the right end (UV 12), and the bottom
+   half is transparent. 15° on the circle = 1 step of UV index. */
+.uv-arc {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 270deg,
+    var(--uv-low) 0deg 20deg,
+    var(--uv-moderate) 60deg,
+    var(--uv-high) 98deg,
+    var(--uv-very-high) 135deg,
+    var(--uv-extreme) 168deg 180deg,
+    transparent 180deg
+  );
+  /* Hides everything but a 12px ring around the edge */
+  mask: radial-gradient(farthest-side, transparent calc(100% - 12px), #000 calc(100% - 11px));
+}
+
+/* An invisible arm from the circle's center to the ring, turned to the current
+   UV value. js/weather.js sets --uv-turn from 0 (left end) to 1 (right end). */
+.uv-pointer {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 50%;
+  height: 0;
+  transform-origin: left center;
+  rotate: calc(180deg + var(--uv-turn, 0) * 180deg);
+  transition: rotate 0.6s ease;
+}
+
+/* The knob at the end of the arm, sitting on the ring. */
+.uv-pointer span {
+  position: absolute;
+  right: -3px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* Small "0" and "12" under the ends of the arc, low enough that the knob
+   doesn't cover them at either end (they sit beside the big number). */
+.uv-end {
+  position: absolute;
+  top: calc(100% + 12px);
+  width: 12px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.uv-end-low { left: 0; }
+.uv-end-high { right: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uv-pointer {
+    transition: none;
+  }
 }
 
 .aqi-good { --band: var(--aqi-good); }
@@ -494,7 +764,7 @@ a:focus-visible,
 /* ---------- Surf ---------- */
 
 .surf-card h2 i {
-  color: var(--accent);
+  color: var(--sea);
 }
 
 .surf-days {
@@ -566,10 +836,15 @@ a:focus-visible,
 footer {
   max-width: 900px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 16px;
   border-top: 1px solid var(--border);
   color: var(--muted);
+  font-size: 0.75rem;
   text-align: center;
+}
+
+footer a {
+  font-weight: 400;
 }
 
 /* Hidden on screen but still read by screen readers. */
