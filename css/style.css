@@ -1,0 +1,363 @@
+/*
+  style.css — the look of the portfolio homepage (Storytime Reader has its own).
+
+  How CSS works: a "selector" picks elements, then { property: value; } styles them.
+    h2 { ... }        styles every <h2>
+    .portrait { ... } styles elements with class="portrait"
+    #logo { ... }     styles the element with id="logo"
+*/
+
+/* Load two fonts from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Proza+Libre:wght@700&display=swap");
+
+/* ===== VARIABLES =====
+   Change a value here and it updates everywhere it's used, e.g. var(--font-color).
+   Try changing --accent-color to see what happens! */
+:root {
+  --spacing-1: 8px;
+  --spacing-2: 12px;
+  --spacing-3: 16px;
+  --spacing-4: 24px;
+  --spacing-5: 48px;
+
+  --border-radius: 12px;
+
+  /* Same dark colors as Storytime Reader */
+  color-scheme: dark; /* tells the browser to draw scrollbars and form controls dark too */
+  --font-color: #e8e6e1;       /* soft white */
+  --background-color: #141517; /* soft black */
+  --surface-color: #1c1e21;    /* slightly lighter, for boxes */
+  --muted-color: #9ea2a8;      /* gray, for less important text */
+  --border-color: #33363b;
+  --accent-color: #5cc98f;     /* green */
+  --on-accent-color: #0e1a13;  /* dark text drawn on top of green */
+}
+
+/* ===== PAGE BASICS ===== */
+html {
+  scroll-behavior: smooth; /* nav links glide instead of jumping */
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+  color: var(--font-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+
+  /* Keep content in a centered column, max 900px wide */
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-3);
+
+  /* Makes the footer stick to the bottom on short pages */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2 {
+  font-family: "Proza Libre", sans-serif;
+  margin: 0 0 var(--spacing-2);
+}
+
+h3 {
+  margin: 0 0 var(--spacing-1);
+}
+
+a {
+  color: var(--font-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+section {
+  padding: var(--spacing-4) 0;
+}
+
+/* ===== BUTTONS ===== */
+/* A link with class="button" looks like a green button */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 2px solid var(--accent-color);
+  border-radius: var(--border-radius);
+  background-color: var(--accent-color);
+  color: var(--on-accent-color);
+}
+
+.button:hover {
+  color: var(--on-accent-color);
+  opacity: 0.85;
+}
+
+/* Add "button-outline" too for an outlined version */
+.button-outline {
+  background-color: transparent;
+  color: var(--accent-color);
+}
+
+.button-outline:hover {
+  color: var(--accent-color);
+  background-color: var(--surface-color);
+}
+
+/* ===== NAVIGATION ===== */
+nav {
+  display: flex; /* puts the logo and links side by side */
+  align-items: center;
+  flex-wrap: wrap;
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border-color); /* thin line under the nav */
+}
+
+#logo {
+  margin: 0;
+}
+
+.navigation-items {
+  display: flex;
+  flex-wrap: wrap;
+  list-style-type: none; /* removes the bullet points */
+  margin: 0 0 0 auto; /* "auto" on the left pushes the links to the right */
+  padding: 0;
+}
+
+.navigation-items li {
+  margin: var(--spacing-1);
+}
+
+/* ===== HERO ===== */
+#hero {
+  display: flex; /* text on the left, photo on the right */
+  align-items: center;
+  gap: var(--spacing-5);
+  padding: var(--spacing-5) 0;
+}
+
+#hero h1 {
+  font-size: 2.8rem;
+  line-height: 1.15;
+}
+
+.hero-title {
+  margin: 0 0 var(--spacing-3);
+  color: var(--accent-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.hero-intro {
+  margin: 0 0 var(--spacing-4);
+  color: var(--muted-color);
+  font-size: 1.1rem;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.portrait {
+  width: 260px;
+  max-width: 100%;
+  border-radius: var(--border-radius);
+  flex-shrink: 0; /* don't let the photo get squished */
+}
+
+/* ===== PROJECTS ===== */
+/* A grid of cards: two side by side, wrapping to one column on phones */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* clips the image to the card's rounded corners */
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--surface-color);
+}
+
+.project-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10; /* every screenshot gets the same shape */
+  object-fit: cover;
+  object-position: top;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.project-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* stretches so both cards' links line up at the bottom */
+  padding: var(--spacing-3);
+}
+
+.project-body p {
+  margin: 0 0 var(--spacing-2);
+}
+
+.project-learned {
+  color: var(--muted-color);
+}
+
+/* The little rounded labels for each technology */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  margin: 0 0 var(--spacing-3);
+  padding: 0;
+  list-style-type: none;
+}
+
+.tags li {
+  padding: 2px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px; /* fully rounded ends */
+  color: var(--muted-color);
+  font-size: 0.85rem;
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  margin-top: auto; /* pushes the links to the bottom of the card */
+}
+
+/* ===== SKILLS ===== */
+#skills-container {
+  display: flex;
+  flex-wrap: wrap; /* icons move to a new line if they run out of room */
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+#skills-container li {
+  display: flex;
+  flex-direction: column; /* icon on top, name underneath */
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 64px;
+  font-size: 0.9rem;
+}
+
+#skills-container i {
+  font-size: 2.5rem; /* icons are text, so font-size controls their size */
+}
+
+/* ===== EXPERIENCE ===== */
+/* A line down the left side with a dot for each item */
+.timeline {
+  margin-bottom: var(--spacing-4);
+  border-left: 2px solid var(--border-color);
+}
+
+.timeline-item {
+  position: relative; /* so the dot can be placed relative to this item */
+  padding: 0 0 var(--spacing-4) var(--spacing-4);
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -7px; /* centers the 12px dot on the 2px line */
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+}
+
+.timeline-item p {
+  margin: 0;
+}
+
+.timeline-meta {
+  color: var(--muted-color);
+  font-size: 0.9rem;
+}
+
+/* ===== CONTACT ===== */
+.email-link {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+.contact-links {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.icon {
+  font-size: 2.5em;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  margin-top: auto; /* pushes the footer to the bottom */
+  padding: var(--spacing-4) 0;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: var(--muted-color);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-1);
+  font-size: 1.4rem;
+}
+
+.footer-links a {
+  color: var(--muted-color);
+}
+
+.heart {
+  color: var(--accent-color);
+}
+
+/* ===== PHONES =====
+   Everything inside here only applies when the screen is 600px wide or less. */
+@media (max-width: 600px) {
+  #hero {
+    flex-direction: column-reverse; /* photo on top, text underneath */
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4) 0;
+  }
+
+  #hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .portrait {
+    width: 180px;
+  }
+
+  /* Nav links go on their own row under the logo */
+  .navigation-items {
+    margin-left: -6px;
+    width: 100%;
+  }
+
+  .navigation-items li {
+    margin: var(--spacing-1) 6px; /* a little tighter so all the links fit on one row */
+  }
+}

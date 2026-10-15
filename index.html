@@ -8,10 +8,20 @@
     <meta charset="UTF-8" />
     <!-- This line makes the site look right on phones -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dish | Portfolio</title>
+    <title>Michael Dishno | Portfolio</title>
+    <!-- Shows up under the link in search results and when the link is shared -->
+    <meta
+      name="description"
+      content="Michael Dishno, a Technical Project Specialist learning full stack engineering. Projects, experience and contact info."
+    />
+    <!-- The little icon in the browser tab: a green "D" drawn with SVG -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23141517'/><text x='50' y='72' font-family='sans-serif' font-size='68' font-weight='700' fill='%235cc98f' text-anchor='middle'>D</text></svg>"
+    />
 
     <!-- Our own styles -->
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/style.css" />
     <!-- Font Awesome: gives us free icons like <i class="fa-brands fa-github"></i> -->
     <link
       rel="stylesheet"
@@ -26,125 +36,232 @@
     <nav>
       <h2 id="logo"><a href="index.html">Dish</a></h2>
       <ul class="navigation-items">
-        <li><a href="#bio">Bio</a></li>
+        <li><a href="#about">About</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#skills">Skills</a></li>
-        <li><a href="contact.html">Contact</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
 
     <main>
-      <!-- ===== BIO ===== -->
-      <section id="bio">
-        <div class="about-me-container">
-          <div class="about-me-text">
-            <h2>Bio</h2>
-            <p>
-              I'm Michael Dishno and I'm a creative with many different hobbies,
-              the latest of which is learning to code!
-            </p>
-            <p>
-              In my professional life, I studied Project Management and
-              Entrepreneurship (through a Business Admin. degree) and work as a
-              Technical Project Specialist. I manage projects, development and
-              interdepartmental, at a Fintech startup that is nearly ten years
-              old.
-            </p>
-            <p>
-              In my personal life, I like to stay active and creative. Growing
-              up in Southern California, I've always surfed and skated and done
-              anything to enjoy the perfect weather California has to offer.
-              I've been a multi-instrumental musician for 15+ years and dabble
-              in other creative hobbies, such as writing, gaming, TTRPG design,
-              and now coding!
-            </p>
-            <p>
-              Fun fact! I've been coding for
-              <!-- script.js fills in this number and updates it every second -->
-              <span id="time-container">0</span> seconds!
-            </p>
+      <!-- ===== HERO ===== -->
+      <!-- The first thing visitors see: who you are and what you do -->
+      <section id="hero">
+        <div class="hero-text">
+          <h1>Michael Dishno</h1>
+          <p class="hero-title">Technical Project Specialist learning full stack engineering</p>
+          <!-- Placeholder: one or two sentences about what you do, in your own words -->
+          <p class="hero-intro">
+            After completing my Business Administration degree, I started my career 
+            in project management and technical discovery. Outside of my 9-to-5, I'm learning to code and 
+            build web applications, with the goal of becoming a more well rounded leader on development team.
+          </p>
+          <div class="hero-buttons">
+            <a href="#projects" class="button">See my projects</a>
+            <a href="#contact" class="button button-outline">Get in touch</a>
           </div>
-
-          <!-- To use your own photo: put it in the images folder and change src -->
-          <img
-            src="images/photo-of-me.jpeg"
-            alt="A photo of Michael Dishno"
-            class="portrait"
-          />
         </div>
+
+        <!-- To use a different photo: put it in the images folder and change src -->
+        <img
+          src="images/photo-of-me.jpeg"
+          alt="A photo of Michael Dishno"
+          class="portrait"
+        />
+      </section>
+
+      <!-- ===== ABOUT ===== -->
+      <section id="about">
+        <h2>About</h2>
+        <p>
+          I'm a creative with many different hobbies,
+          the latest of which is learning to code!
+        </p>
+        <p>
+          I studied Project Management and Entrepreneurship (through a
+          Business Admin degree) and work as a Technical Project Specialist.
+          I manage projects, in development and interdepartmental ones, at a Fintech startup,
+          where I also help with the technical side of the implementation of new tools and processes.
+        </p>
+        <p>
+          In my personal life, I like to stay active and creative. Growing up in
+          Southern California, I've surfed and skated for many years, always doing something
+          to enjoy the perfect weather California has to offer. I've been a
+          multi-instrumental musician for 15+ years and dabble in an array of
+          hobbies, such as writing, gaming, TTRPG design, and now coding!
+        </p>
+        <p>
+          Fun fact! I've been coding for
+          <!-- js/script.js fills in this number and updates it every second -->
+          <span id="time-container">0</span> seconds!
+        </p>
       </section>
 
       <!-- ===== PROJECTS ===== -->
       <!--
-        Each project is a <details> element: click the title to open/close it.
-        To add a project, copy one whole <details>...</details> block and edit it.
+        Each project is an <article class="project-card">.
+        To add a project, copy one whole <article>...</article> block and edit it.
       -->
       <section id="projects">
         <h2>Projects</h2>
+        <div class="project-grid">
+          <article class="project-card">
+            <a href="storytime-reader.html">
+              <img
+                src="images/storytime-reader.jpg"
+                alt="Storytime Reader highlighting a sentence as it reads a story aloud"
+                class="project-image"
+              />
+            </a>
+            <div class="project-body">
+              <h3>Storytime Reader</h3>
+              <p>
+                Paste any text and hear it read aloud, with each sentence and
+                word highlighted as it's spoken. It has speed control, sentence
+                skipping, and two kinds of voices: the ones built into your
+                browser, and an open-source AI voice that runs right on your
+                device.
+              </p>
+              <!-- Placeholder: a choice you made or something you learned building it -->
+              <p class="project-learned">
+                <strong>What I learned:</strong> how to integrate a simple
+                AI voice into a web application, and how to use the Web Speech
+                API to read text aloud and highlight it as it's spoken.
+              </p>
+              <ul class="tags">
+                <li>HTML</li>
+                <li>CSS</li>
+                <li>JavaScript</li>
+                <li>Web Speech API</li>
+                <li>Kokoro AI voice</li>
+              </ul>
+              <div class="project-links">
+                <a href="storytime-reader.html"><i class="fa-solid fa-play"></i> Check it out</a>
+                <a href="https://github.com/dishyyman/portfolio"><i class="fa-brands fa-github"></i> Source code</a>
+              </div>
+            </div>
+          </article>
 
-        <details class="project">
-          <summary><h3>This portfolio website</h3></summary>
-          <p>
-            My first website, built with plain HTML and CSS. It's where I'll
-            show the things I build as I learn.
-          </p>
-          <!-- Optional: add a screenshot like this:
-          <img src="images/my-project.png" alt="Screenshot of my project" class="project-image" />
-          -->
-        </details>
-
-        <details class="project">
-          <summary><h3>Storytime Reader</h3></summary>
-          <p>
-            Paste any text and hear it read aloud, with each sentence and word
-            highlighted as it's spoken. It has speed control, sentence skipping,
-            and two kinds of voices: the ones built into your browser, and an
-            open-source AI voice that runs right on your device.
-          </p>
-          <p>
-            Built with HTML, CSS and JavaScript, using the Web Speech API and the
-            Kokoro AI voice model.
-          </p>
-          <!-- storytime-reader/ is a folder in this repo with the app's own page -->
-          <a href="storytime-reader/">
+          <article class="project-card">
             <img
-              src="images/storytime-reader.jpg"
-              alt="Storytime Reader highlighting a sentence as it reads a story aloud"
+              src="images/portfolio.jpg"
+              alt="The top of this portfolio website"
               class="project-image"
             />
-          </a>
-          <p><a href="storytime-reader/">Try Storytime Reader →</a></p>
-        </details>
-
-        <details class="project">
-          <summary><h3>Project three</h3></summary>
-          <p>Describe what the project does and what you learned building it.</p>
-        </details>
+            <div class="project-body">
+              <h3>This portfolio website</h3>
+              <p>
+                My first website, built from scratch with plain HTML, CSS and
+                JavaScript. It's where I show the things I build as I learn.
+              </p>
+              <!-- Placeholder: a choice you made or something you learned building it -->
+              <p class="project-learned">
+                <strong>What I learned:</strong> Lorem ipsum dolor sit amet,
+                consectetur adipiscing elit, sed do eiusmod tempor.
+              </p>
+              <ul class="tags">
+                <li>HTML</li>
+                <li>CSS</li>
+                <li>JavaScript</li>
+                <li>GitHub Pages</li>
+              </ul>
+              <div class="project-links">
+                <a href="https://github.com/dishyyman/portfolio"><i class="fa-brands fa-github"></i> Source code</a>
+              </div>
+            </div>
+          </article>
+        </div>
       </section>
 
       <!-- ===== SKILLS ===== -->
       <!--
         Each <i> is an icon from Font Awesome. Find more at
         https://fontawesome.com/search?ic=brands  (copy the class names).
-        The "title" text shows up when you hover over an icon.
+        The <span> under each icon is its name, so it's readable without hovering.
       -->
       <section id="skills">
         <h2>Skills</h2>
-        <div id="skills-container">
-          <i class="fa-brands fa-html5" title="HTML"></i>
-          <i class="fa-brands fa-css3-alt" title="CSS"></i>
-          <i class="fa-brands fa-js" title="JavaScript"></i>
-          <i class="fa-brands fa-git-alt" title="Git"></i>
-          <i class="fa-brands fa-github" title="GitHub"></i>
-          <i class="fa-solid fa-terminal" title="Terminal"></i>
+        <ul id="skills-container">
+          <li><i class="fa-brands fa-html5"></i><span>HTML</span></li>
+          <li><i class="fa-brands fa-css3-alt"></i><span>CSS</span></li>
+          <li><i class="fa-brands fa-js"></i><span>JavaScript</span></li>
+          <li><i class="fa-brands fa-git-alt"></i><span>Git</span></li>
+          <li><i class="fa-brands fa-github"></i><span>GitHub</span></li>
+          <li><i class="fa-solid fa-terminal"></i><span>Terminal</span></li>
+        </ul>
+      </section>
+
+      <!-- ===== EXPERIENCE ===== -->
+      <!--
+        Each job, degree or course is an <article class="timeline-item">.
+        Newest goes first. Copy a whole <article>...</article> block to add one.
+      -->
+      <section id="experience">
+        <h2>Experience</h2>
+        <div class="timeline">
+          <article class="timeline-item">
+            <h3>Technical Project Specialist</h3>
+            <!-- Placeholder: company name and dates -->
+            <p class="timeline-meta">PatientFi · 2026 – Present</p>
+            <!-- Placeholder: what you do and what you're proud of -->
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+          </article>
+
+          <article class="timeline-item">
+            <h3>Learning Full Stack Engineering</h3>
+            <!-- Placeholder: where you're learning (courses, bootcamp, self-taught) -->
+            <p class="timeline-meta">Codecademy.com · 2026 – Present</p>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim
+              ad minim veniam, quis nostrud exercitation.
+            </p>
+          </article>
+
+          <article class="timeline-item">
+            <h3>Business Administration degree</h3>
+            <!-- Placeholder: school name and graduation year -->
+            <p class="timeline-meta">Southern New Hampshire University · 2026</p>
+            <p>Focus on Project Management and Entrepreneurship.</p>
+          </article>
+        </div>
+
+        <!--
+          To make this work: save your resume as resume.pdf in the files folder.
+          "download" tells the browser to save the file instead of opening it.
+        -->
+        <a href="files/resume.pdf" class="button" download>
+          <i class="fa-solid fa-file-arrow-down"></i> Download resume (PDF)
+        </a>
+      </section>
+
+      <!-- ===== CONTACT ===== -->
+      <section id="contact">
+        <h2>Contact</h2>
+        <p>Have an interesting project or opportunity? I'd love to hear about it!</p>
+        <!-- "mailto:" links open the visitor's email app with your address filled in -->
+        <p>
+          <a href="mailto:madishno@gmail.com" class="email-link">madishno@gmail.com</a>
+        </p>
+        <div class="contact-links">
+          <a href="mailto:madishno@gmail.com" aria-label="Email"><i class="fa-solid fa-square-envelope icon"></i></a>
         </div>
       </section>
     </main>
 
     <!-- ===== FOOTER ===== -->
-    <footer>Made with <span class="heart">♥</span> by Dish</footer>
+    <footer>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/michael-dishno" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        <a href="https://github.com/dishyyman" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+      </div>
+      Made with <span class="heart">♥</span> by Dish
+    </footer>
 
     <!-- JavaScript goes at the end so the page loads first -->
-    <script src="script.js"></script>
+    <script src="js/script.js"></script>
   </body>
 </html>

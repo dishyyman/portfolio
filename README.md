@@ -1,17 +1,27 @@
 # mdishno-portfolio
 
-My portfolio to build on as I create projects. Built with plain HTML, CSS, and a little JavaScript.
+My portfolio to build on as I create projects. Built from scratch with plain HTML, CSS, and JavaScript.
+
+**Live site:** https://dishyyman.github.io/portfolio/
+
+## Projects
+
+- **[Storytime Reader](https://dishyyman.github.io/portfolio/storytime-reader.html)**: paste any text and hear it read aloud, with each sentence and word highlighted as it's spoken. It can use your browser's built-in voices or Kokoro, an open-source AI voice that runs on your device. Code: `storytime-reader.html`, `css/storytime-reader.css`, and the `js/storytime-reader.js`, `js/ai-voice.js`, `js/ai-worker.js` scripts.
+- **This portfolio**: a one-page site with Hero, About, Projects, Skills, Experience and Contact sections. Code: `index.html`, `css/style.css`, `js/script.js`.
 
 ## Files
 
 | File | What it does |
 | --- | --- |
-| `index.html` | Home page: About Me, Projects, Skills |
-| `contact.html` | Contact page with links to my profiles |
-| `style.css` | All the styling (colors, fonts, layout) for both pages |
-| `script.js` | The "I've been coding for X seconds" counter |
+| `index.html` | The homepage: Hero, About, Projects, Skills, Experience, Contact |
+| `storytime-reader.html` | **Storytime Reader**: paste text and hear it read aloud with highlighting |
+| `css/style.css` | Styling (colors, fonts, layout) for the homepage |
+| `css/storytime-reader.css` | Styling for Storytime Reader |
+| `js/script.js` | The "I've been coding for X seconds" counter |
+| `js/storytime-reader.js` | Storytime Reader's main script |
+| `js/ai-voice.js`, `js/ai-worker.js` | Storytime Reader's AI voice (runs in a background thread) |
 | `images/` | Photos and screenshots used on the site |
-| `storytime-reader/` | **Storytime Reader**: paste text and hear it read aloud with highlighting. It has its own page, styles and scripts. |
+| `files/` | Downloadable files, like `resume.pdf` |
 
 ## How to view it
 
@@ -27,12 +37,13 @@ Then open http://localhost:8000. If a change doesn't show up, do a hard refresh 
 
 ## Things to edit first
 
-1. **About Me text** in `index.html`
-2. **Your photo**: put it in `images/` and change the `src` of the `<img class="portrait">` in `index.html`
-3. **Projects** in `index.html`: copy a `<details>` block to add more
-4. **Contact links** in `contact.html`: replace each `href="#"`
-5. **Start date** for the counter at the top of `script.js`
-6. **Colors**: change the variables at the top of `style.css`
+1. **Placeholder text** in `index.html`: search for "Lorem" and "Placeholder" and write each one in your own words
+2. **Resume**: save it as `files/resume.pdf` so the Download resume button works
+3. **Your photo**: put it in `images/` and change the `src` of the `<img class="portrait">` in `index.html`
+4. **Projects** in `index.html`: copy an `<article class="project-card">` block to add more
+5. **Experience** in `index.html`: copy an `<article class="timeline-item">` block to add more
+6. **Start date** for the counter at the top of `js/script.js`
+7. **Colors**: change the variables at the top of `css/style.css`
 
 ## Built with
 
