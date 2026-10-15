@@ -1,22 +1,27 @@
 // AI voice engine: Kokoro, an open-source neural text-to-speech model
 // (Apache 2.0, https://github.com/hexgrad/kokoro). It runs entirely in the
 // visitor's browser, so there's no server and no API key. The model downloads
-// once (about 90 MB) and the browser caches it for next time.
+// once and the browser caches it for next time: about 330 MB to run on the
+// graphics card, or about 90 MB for the slower CPU fallback (see ai-worker.js).
 //
 // The model itself runs in ai-worker.js, a background thread, so the page
 // never freezes while speech is being made.
 //
-// Kokoro gives us audio but not word timings, so:
-// - the sentence highlight is exact (we play one sentence at a time), and
-// - the word highlight is estimated from how far through the sentence's audio we are.
+// Kokoro gives us audio but no word timings, so it highlights one sentence at a time.
+//
+// Making speech takes a while, so we work ahead: while one sentence plays, the
+// next few are already being made. That way a long sentence after a short one
+// is usually ready before it's needed.
 
 const DEFAULT_VOICE = 'af_heart';
+// How much text to have made (or being made) ahead of the sentence being read.
+// About 15 characters is one second of speech, so this is roughly 30 seconds.
+const READ_AHEAD_CHARS = 450;
 // A fraction of a second of silence (used by unlockAudio below).
 const SILENT_WAV = 'data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
 
 export function createAiEngine(hooks) {
   let worker = null;
-  let voices = null;      // the voice list, once the model has loaded
   let loading = null;
 
   const audio = new Audio();
@@ -74,6 +79,11 @@ export function createAiEngine(hooks) {
   }
 
   function showDownloadProgress(info) {
+    if (info.status === 'restart') {
+      downloads.clear();
+      hooks.onLoadProgress(0);
+      return;
+    }
     if (info.status !== 'progress' || !info.total) return;
     downloads.set(info.file, info);
     let loaded = 0;
@@ -87,9 +97,8 @@ export function createAiEngine(hooks) {
 
   async function load() {
     if (!loading) {
-      loading = ask({ type: 'load' }).then((result) => {
-        voices = result;
-      });
+      // Resolves to where the model runs: 'webgpu' (graphics card) or 'wasm' (CPU).
+      loading = ask({ type: 'load' });
       loading.catch(() => {
         loading = null; // allow another try
       });
@@ -98,6 +107,7 @@ export function createAiEngine(hooks) {
   }
 
   // Returns a Promise of an audio URL for sentence i, generating it if needed.
+  // Once the audio is made, the Promise gets done = true.
   function getAudio(i) {
     if (!cache.has(i)) {
       const text = list[i].text;
@@ -106,8 +116,9 @@ export function createAiEngine(hooks) {
       const job = generating.then(async () => {
         // Skip work that's no longer needed (the user skipped ahead,
         // changed voice, or started new text while this was waiting).
-        if (cache !== myCache || i < index || i > index + 1) throw new Error('skipped');
+        if (cache !== myCache || i < index) throw new Error('skipped');
         const wav = await ask({ type: 'generate', text, voice: chosenVoice });
+        job.done = true;
         return URL.createObjectURL(wav);
       });
       generating = job.catch(() => {});
@@ -117,6 +128,27 @@ export function createAiEngine(hooks) {
       cache.set(i, job);
     }
     return cache.get(i);
+  }
+
+  // Queue up the sentences after the current one until about READ_AHEAD_CHARS
+  // of text is waiting. They're made one at a time, in order.
+  function readAhead() {
+    let queued = 0;
+    for (let k = index + 1; k < list.length && queued < READ_AHEAD_CHARS; k++) {
+      getAudio(k);
+      queued += list[k].text.length;
+    }
+  }
+
+  // Free the audio for sentences we're done with. The one just before the
+  // current sentence is kept, so the Previous button doesn't have to wait.
+  function freeOldAudio() {
+    for (const [k, job] of cache) {
+      if (k < index - 1) {
+        job.then((url) => URL.revokeObjectURL(url)).catch(() => {});
+        cache.delete(k);
+      }
+    }
   }
 
   function clearCache() {
@@ -136,11 +168,15 @@ export function createAiEngine(hooks) {
 
     const i = index;
     hooks.onSentence(i);
-    if (!cache.has(i)) hooks.onWaiting(); // this sentence's audio isn't ready yet
+
+    const job = getAudio(i);
+    if (!job.done) hooks.onWaiting(); // this sentence's audio isn't ready yet
+    readAhead();
+    freeOldAudio();
 
     let url;
     try {
-      url = await getAudio(i);
+      url = await job;
     } catch (error) {
       if (myRun === runId) {
         console.error(error);
@@ -150,14 +186,6 @@ export function createAiEngine(hooks) {
       return;
     }
     if (myRun !== runId) return; // paused or stopped while we were waiting
-
-    // Start making the next sentence now so there's no gap.
-    if (i + 1 < list.length) getAudio(i + 1);
-    // Free the audio for sentences we've finished with.
-    if (cache.has(i - 1)) {
-      cache.get(i - 1).then((oldUrl) => URL.revokeObjectURL(oldUrl));
-      cache.delete(i - 1);
-    }
 
     audio.src = url;
     loadedIndex = i;
@@ -188,31 +216,6 @@ export function createAiEngine(hooks) {
     if (!playing || loadedIndex !== index) return;
     index++;
     playCurrent();
-  });
-
-  // Estimate the current word: if we're 40% through the audio, we're probably
-  // about 40% through the sentence's letters. Runs every animation frame.
-  function trackWord() {
-    if (audio.paused || audio.ended || loadedIndex < 0) return;
-    const words = list[loadedIndex].words;
-    if (audio.duration > 0 && words.length > 0) {
-      const fraction = audio.currentTime / audio.duration;
-      const weights = words.map((w) => w.end - w.start + 1); // longer words take longer to say
-      const total = weights.reduce((sum, w) => sum + w, 0);
-      let target = fraction * total;
-      let k = 0;
-      while (k < words.length - 1 && target > weights[k]) {
-        target -= weights[k];
-        k++;
-      }
-      hooks.onWord(loadedIndex, words[k].start);
-    }
-    frame = requestAnimationFrame(trackWord);
-  }
-  let frame = 0;
-  audio.addEventListener('play', () => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(trackWord);
   });
 
   function haltAudio() {
@@ -276,16 +279,6 @@ export function createAiEngine(hooks) {
       clearCache();
       loadedIndex = -1;
       if (wasPlaying) playCurrent();
-    },
-    listVoices() {
-      if (!voices) return [];
-      const names = new Intl.DisplayNames(['en'], { type: 'language' });
-      return Object.entries(voices).map(([id, info]) => ({
-        id,
-        label: `${info.name} (${info.gender.toLowerCase()}, grade ${info.overallGrade})`,
-        group: names.of(info.language), // "en-us" → "American English"
-        isDefault: id === DEFAULT_VOICE,
-      }));
     },
   };
 }

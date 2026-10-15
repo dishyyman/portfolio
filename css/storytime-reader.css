@@ -28,7 +28,7 @@ body {
   color: var(--text);
   font-family: "Open Sans", system-ui, sans-serif; /* matches the portfolio */
   line-height: 1.5;
-  accent-color: var(--accent); /* colors the radio buttons and speed slider */
+  accent-color: var(--accent); /* colors the speed slider */
 }
 
 main {
@@ -118,21 +118,6 @@ nav a:hover {
   gap: 12px 24px;
 }
 
-.engine-toggle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.engine-toggle legend {
-  float: left;
-  margin-right: 4px;
-  font-weight: 600;
-}
-
 .control {
   display: flex;
   align-items: center;
@@ -141,7 +126,8 @@ nav a:hover {
 }
 
 select {
-  max-width: 240px;
+  max-width: 290px; /* wide enough for "Samantha (American English)" */
+  min-width: 0;     /* but allowed to shrink on narrow phones */
   padding: 4px;
   font: inherit;
   font-weight: normal;

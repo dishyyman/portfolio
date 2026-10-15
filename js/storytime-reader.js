@@ -6,14 +6,20 @@
 //
 // There are two engines, and both have the same methods:
 //   play(sentences, startIndex), pause(), resume(), skip(delta), stop(),
-//   setSpeed(rate), setVoice(id), listVoices()
+//   setSpeed(rate), setVoice(id)
 // - Browser engine (in this file): the Web Speech API built into every browser.
 // - AI engine (ai-voice.js): Kokoro, an open-source neural voice that runs in the browser.
+//   It only reports sentences (no onWord), so it highlights one sentence at a time.
+//
+// Both engines' voices share one menu. Each option's value says which engine
+// it belongs to, like "browser:Samantha" or "ai:af_heart". Picking an AI voice
+// loads the AI engine the first time.
+
+import { AI_VOICES } from './ai-voice-list.js';
 
 const els = {
   text: document.getElementById('text-input'),
   reading: document.getElementById('reading-view'),
-  engineRadios: document.querySelectorAll('input[name="engine"]'),
   voice: document.getElementById('voice-select'),
   speed: document.getElementById('speed'),
   speedLabel: document.getElementById('speed-label'),
@@ -29,6 +35,9 @@ const els = {
   note: document.getElementById('note'),
 };
 
+// The browser voices offered in the menu, by name. They come with Apple devices.
+const BROWSER_VOICE_NAMES = ['Samantha', 'Karen', 'Daniel'];
+
 // Very long sentences are split into smaller pieces. The AI voice cuts off
 // text that is too long, and some browser voices stop partway through.
 const MAX_CHUNK_LENGTH = 300;
@@ -38,12 +47,12 @@ const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
 
 let sentences = [];       // [{ text, el, words: [{ start, end, el }] }]
 let state = 'idle';       // 'idle' | 'playing' | 'paused'
-let engineName = 'browser';
+let engineName = null;    // 'browser' | 'ai' (null until a voice is picked)
 let engine = null;
 let browserEngine = null;
 let aiEngine = null;
 let engineLoading = false;
-const chosenVoice = { browser: null, ai: null }; // remembered per engine
+let currentVoice = '';    // the menu value of the voice in use, like "browser:Samantha"
 
 // Everything an engine needs to tell the page.
 const hooks = {
@@ -76,7 +85,7 @@ const hooks = {
     showNote("This voice doesn't report word timing, so only the sentence is highlighted. Try another voice for word highlighting.");
   },
   onVoicesChanged() {
-    if (engineName === 'browser') fillVoiceSelect();
+    fillVoiceSelect();
   },
   onLoadProgress(fraction) {
     els.progress.value = fraction;
@@ -294,27 +303,19 @@ function createBrowserEngine(hooks) {
       voice = synth.getVoices().find((v) => v.voiceURI === id) ?? null;
       restartSentence();
     },
+    // Only the voices named in BROWSER_VOICE_NAMES, in that order.
     listVoices() {
       const voices = synth.getVoices();
-      const userLang = (navigator.language || 'en').toLowerCase().split('-')[0];
-      const isMine = (v) => normalizeLang(v.lang).toLowerCase().startsWith(userLang);
-      const preferred =
-        voices.find((v) => v.default && isMine(v)) ??
-        voices.find((v) => v.localService && isMine(v)) ??
-        voices.find(isMine) ??
-        voices.find((v) => v.default) ??
-        voices[0];
-
-      return voices
-        .map((v) => ({
-          id: v.voiceURI,
-          label: v.localService ? v.name : `${v.name} (online)`,
-          group: languageName(v.lang),
-          isDefault: v === preferred,
-          mine: isMine(v),
-        }))
-        // Your own language first, then grouped by language, then by name.
-        .sort((a, b) => (b.mine - a.mine) || a.group.localeCompare(b.group) || a.label.localeCompare(b.label));
+      const picked = BROWSER_VOICE_NAMES
+        .map((name) => voices.find((v) => v.name === name) ?? voices.find((v) => v.name.startsWith(`${name} (`)))
+        .filter(Boolean);
+      // None of them on this device (they come with Apple devices), so offer the
+      // browser's default voice instead. Otherwise the only choices would be AI voices.
+      if (picked.length === 0) {
+        const fallback = voices.find((v) => v.default) ?? voices[0];
+        if (fallback) picked.push(fallback);
+      }
+      return picked.map((v) => ({ id: v.voiceURI, label: `${v.name} (${languageName(v.lang)})` }));
     },
   };
 }
@@ -377,31 +378,67 @@ function showReadingView(show) {
   }
 }
 
+// Builds the voice menu: the browser voices first, then the AI voices grouped by language.
 function fillVoiceSelect() {
-  const voices = engine.listVoices();
   els.voice.replaceChildren();
+  const browserVoices = browserEngine?.listVoices() ?? [];
 
-  // One <optgroup> per language.
+  // With no browser voices yet, nothing is picked until the visitor chooses an AI voice.
+  if (browserVoices.length === 0) {
+    els.voice.append(new Option('Choose a voice', '', true, true));
+    els.voice.options[0].disabled = true;
+  } else {
+    const group = addGroup('Browser voices');
+    for (const v of browserVoices) group.append(new Option(v.label, `browser:${v.id}`));
+  }
+
+  const languageNames = new Intl.DisplayNames(['en'], { type: 'language' });
   const groups = new Map();
-  for (const v of voices) {
-    if (!groups.has(v.group)) {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = v.group;
-      groups.set(v.group, optgroup);
-      els.voice.append(optgroup);
-    }
-    groups.get(v.group).append(new Option(v.label, v.id));
+  for (const v of AI_VOICES) {
+    const language = languageNames.of(v.language); // "en-us" → "American English"
+    if (!groups.has(language)) groups.set(language, addGroup(`AI voices: ${language}`));
+    groups.get(language).append(new Option(`${v.name} (${v.gender.toLowerCase()}, grade ${v.grade})`, `ai:${v.id}`));
   }
 
-  const pick = voices.find((v) => v.id === chosenVoice[engineName]) ?? voices.find((v) => v.isDefault) ?? voices[0];
-  if (pick) {
-    els.voice.value = pick.id;
-    engine.setVoice(pick.id);
+  // Keep the voice in use. If there isn't one yet (or it's gone), start with the first browser voice.
+  const stillThere = [...els.voice.options].some((o) => o.value === currentVoice);
+  if (currentVoice && stillThere) {
+    els.voice.value = currentVoice;
+  } else if (browserVoices.length > 0 && !engineLoading) {
+    selectVoice(`browser:${browserVoices[0].id}`);
   }
-  els.voice.disabled = voices.length === 0;
+}
+
+function addGroup(label) {
+  const optgroup = document.createElement('optgroup');
+  optgroup.label = label;
+  els.voice.append(optgroup);
+  return optgroup;
+}
+
+// Use the voice with this menu value, switching engines if needed.
+async function selectVoice(value) {
+  const split = value.indexOf(':');
+  const type = value.slice(0, split); // 'browser' or 'ai'
+  const id = value.slice(split + 1);
+
+  els.voice.value = value;
+  if (type !== engineName && !(await switchEngine(type))) {
+    els.voice.value = currentVoice; // the AI voice couldn't load, so go back to the last voice
+    return;
+  }
+  currentVoice = value;
+  els.voice.value = value; // in case the menu was rebuilt while the AI voice loaded
+  engine.setVoice(id);
+  if (type === 'browser') showNote('');
 }
 
 function startReading() {
+  if (!engine) {
+    setStatus('Choose a voice first.');
+    els.voice.focus();
+    return;
+  }
   const text = els.text.value;
   if (!text.trim()) {
     setStatus('Paste some text first.');
@@ -423,69 +460,62 @@ function startReading() {
   engine.play(sentences, 0);
 }
 
+// Switch between the browser engine and the AI engine.
+// Returns false if the AI engine couldn't load.
 async function switchEngine(name) {
   engine?.stop();
   clearHighlights();
   showLoading(false);
   setState('idle');
   setStatus('');
-  engineName = name;
 
   if (name === 'browser') {
-    engine = browserEngine;
     showNote('');
   } else {
     engineLoading = true;
     setState('idle');
-    els.voice.replaceChildren();
     els.voice.disabled = true;
     els.progress.hidden = false;
-    setStatus('Loading the AI voice. The first time this downloads about 90 MB, so it can take a minute…');
+    setStatus('Loading the AI voice. The first time this downloads up to 330 MB, so it can take a minute or two…');
 
+    let device;
     try {
       if (!aiEngine) {
         const { createAiEngine } = await import('./ai-voice.js');
         aiEngine = createAiEngine(hooks);
       }
-      await aiEngine.load();
+      device = await aiEngine.load();
     } catch (error) {
       console.error(error);
+      setStatus("The AI voice couldn't load. Check your connection and try again.");
+      return false;
+    } finally {
       engineLoading = false;
       els.progress.hidden = true;
-      if (engineName === 'ai') {
-        // Go back to browser voices so the page still works.
-        document.querySelector('input[name="engine"][value="browser"]').checked = true;
-        await switchEngine('browser');
-        setStatus("The AI voice couldn't load. Check your connection and try again.");
-      }
-      return;
+      els.voice.disabled = false;
+      setState('idle');
     }
 
-    engineLoading = false;
-    els.progress.hidden = true;
-    if (engineName !== 'ai') return; // switched back while it was loading
-    engine = aiEngine;
-    setStatus('AI voice ready.');
-    showNote('AI voice: English only. Word highlighting is approximate; the sentence highlight is exact.');
+    setStatus(device === 'webgpu'
+      ? 'AI voice ready.'
+      : "AI voice ready. This browser can't run it on the graphics card, so there may be pauses between sentences.");
+    showNote('AI voices highlight one sentence at a time.');
   }
 
+  engineName = name;
+  engine = name === 'browser' ? browserEngine : aiEngine;
   engine.setSpeed(Number(els.speed.value));
-  fillVoiceSelect();
-  setState('idle');
+  return true;
 }
 
 // ---------- Wire up the controls ----------
 
-if (!('speechSynthesis' in window)) {
-  setStatus("This browser has no built-in voices. Try the AI voice, or use Chrome, Edge, Safari or Firefox.");
-  els.play.disabled = true;
-  els.voice.disabled = true;
-  document.querySelector('input[name="engine"][value="browser"]').disabled = true;
-} else {
+if ('speechSynthesis' in window) {
   browserEngine = createBrowserEngine(hooks);
-  engine = browserEngine;
-  fillVoiceSelect();
+} else {
+  setStatus('This browser has no built-in voices. Choose an AI voice from the menu.');
 }
+fillVoiceSelect();
 
 els.play.addEventListener('click', () => {
   if (state === 'idle') {
@@ -506,7 +536,7 @@ els.prev.addEventListener('click', () => engine.skip(-1));
 els.next.addEventListener('click', () => engine.skip(1));
 
 els.stop.addEventListener('click', () => {
-  engine.stop();
+  engine?.stop();
   clearHighlights();
   showLoading(false);
   setState('idle');
@@ -514,7 +544,7 @@ els.stop.addEventListener('click', () => {
 });
 
 els.edit.addEventListener('click', () => {
-  engine.stop();
+  engine?.stop();
   clearHighlights();
   showLoading(false);
   setState('idle');
@@ -526,17 +556,7 @@ els.edit.addEventListener('click', () => {
 els.speed.addEventListener('input', () => {
   const rate = Number(els.speed.value);
   els.speedLabel.textContent = `${rate}×`;
-  engine.setSpeed(rate);
+  engine?.setSpeed(rate);
 });
 
-els.voice.addEventListener('change', () => {
-  chosenVoice[engineName] = els.voice.value;
-  engine.setVoice(els.voice.value);
-  if (engineName === 'browser') showNote('');
-});
-
-for (const radio of els.engineRadios) {
-  radio.addEventListener('change', () => {
-    if (radio.checked) switchEngine(radio.value);
-  });
-}
+els.voice.addEventListener('change', () => selectVoice(els.voice.value));
