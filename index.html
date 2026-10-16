@@ -102,15 +102,27 @@
       <!--
         Each project is an <article class="project-card">.
         To add a project, copy one whole <article>...</article> block and edit it.
+        The cards sit in a row that scrolls sideways; the arrow buttons are wired up in js/script.js.
       -->
       <section id="projects">
-        <h2>Projects</h2>
-        <div class="project-grid">
+        <div class="section-header">
+          <h2>Projects</h2>
+          <div class="carousel-buttons">
+            <button type="button" class="carousel-button" id="projects-prev" aria-label="Previous project">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button type="button" class="carousel-button" id="projects-next" aria-label="Next project">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <!-- tabindex="0" lets keyboard users focus the row and scroll it with the arrow keys -->
+        <div class="project-carousel" id="project-carousel" tabindex="0" aria-label="Projects">
           <article class="project-card">
             <a href="storytime-reader.html">
               <img
                 src="images/storytime-reader.jpg"
-                alt="Storytime Reader highlighting a sentence as it reads a story aloud"
+                alt="Storytime Reader highlighting a sentence and word as it reads a story aloud"
                 class="project-image"
               />
             </a>
@@ -130,6 +142,7 @@
                 API to read text aloud and highlight it as it's spoken.
               </p>
               <ul class="tags">
+                <li class="tag-process">Vibe Coded</li>
                 <li>HTML</li>
                 <li>CSS</li>
                 <li>JavaScript</li>
@@ -165,6 +178,7 @@
                 keep the page working when some data is missing.
               </p>
               <ul class="tags">
+                <li class="tag-process">Vibe Coded</li>
                 <li>HTML</li>
                 <li>CSS</li>
                 <li>JavaScript</li>
@@ -180,19 +194,13 @@
           </article>
 
           <article class="project-card">
-            <!--
-              Once the page works, take a screenshot, save it as
-              images/i-read-it-somewhere.jpg, and delete the comment marks around this block.
-            -->
-            <!--
             <a href="i-read-it-somewhere.html">
               <img
                 src="images/i-read-it-somewhere.jpg"
-                alt="I Read It Somewhere showing a random phrase under a shuffle button"
+                alt="I Read It Somewhere showing a random phrase above the shuffle button"
                 class="project-image"
               />
             </a>
-            -->
             <div class="project-body">
               <h3>I Read It Somewhere</h3>
               <p>
@@ -206,6 +214,7 @@
                 page when a button is clicked.
               </p>
               <ul class="tags">
+                <li class="tag-process">Hand Coded</li>
                 <li>HTML</li>
                 <li>CSS</li>
                 <li>JavaScript</li>
@@ -240,37 +249,90 @@
       <!-- ===== EXPERIENCE ===== -->
       <!--
         Each job, degree or course is an <article class="timeline-item">.
-        Newest goes first. Copy a whole <article>...</article> block to add one.
+        The three main items come first. Copy a whole <article>...</article> block to add one.
+        Add "timeline-item-minor" to the class for smaller, supporting items (hollow dot).
       -->
       <section id="experience">
         <h2>Experience</h2>
         <div class="timeline">
           <article class="timeline-item">
             <h3>Technical Project Specialist</h3>
-            <!-- Placeholder: company name and dates -->
-            <p class="timeline-meta">PatientFi · 2026 – Present</p>
-            <!-- Placeholder: what you do and what you're proud of -->
+            <p class="timeline-meta">PatientFi · Irvine, CA · Jul 2026 – Present</p>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              I lead a company-wide program to bring PatientFi's loan servicing
+              in-house, in a role created to run it. I sit with the development
+              team and turn business priorities into scoped, trackable work.
             </p>
+            <ul>
+              <li>
+                Coordinate parallel workstreams: the LoanPro servicing platform,
+                custom integrations on PatientFi's own platform, AI voice/chat and
+                automated collections, AWS-based telephony, credit reporting, and
+                legal &amp; compliance.
+              </li>
+              <li>
+                Manage data-sync dependencies and handoffs across roughly five
+                partner companies and our internal engineering squads.
+              </li>
+              <li>
+                Work with Technical Analysts to scope, prioritize and assign
+                development work, and publish weekly status reports on milestones,
+                risks and blockers.
+              </li>
+            </ul>
           </article>
 
           <article class="timeline-item">
             <h3>Learning Full Stack Engineering</h3>
-            <!-- Placeholder: where you're learning (courses, bootcamp, self-taught) -->
-            <p class="timeline-meta">Codecademy.com · 2026 – Present</p>
+            <p class="timeline-meta">Codecademy Full-Stack Engineer certification · Expected 2027</p>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim
-              ad minim veniam, quis nostrud exercitation.
+              I'm learning to build for the web so I can work closer to the code
+              and understand the engineering side of the projects I run. The
+              projects on this site are what I've built along the way.
             </p>
+            <ul class="progress-list">
+              <li class="done"><i class="fa-solid fa-check"></i> HTML</li>
+              <li class="done"><i class="fa-solid fa-check"></i> CSS</li>
+              <li><i class="fa-solid fa-circle-half-stroke"></i> JavaScript (in progress)</li>
+            </ul>
           </article>
 
           <article class="timeline-item">
-            <h3>Business Administration degree</h3>
-            <!-- Placeholder: school name and graduation year -->
+            <h3>B.S. in Business Administration</h3>
             <p class="timeline-meta">Southern New Hampshire University · 2026</p>
-            <p>Focus on Project Management and Entrepreneurship.</p>
+            <p>
+              Concentrations in Project Management and Entrepreneurship. Graduated
+              Summa Cum Laude with a 3.93 GPA, a member of Delta Mu Delta and on
+              the President's List.
+            </p>
+          </article>
+
+          <article class="timeline-item timeline-item-minor">
+            <h3>Certified ScrumMaster® (CSM)</h3>
+            <p class="timeline-meta">Scrum Alliance · 2026</p>
+          </article>
+
+          <article class="timeline-item timeline-item-minor">
+            <h3>How I got here</h3>
+            <p class="timeline-meta">10+ years in customer-facing roles</p>
+            <ul>
+              <li>
+                <strong>AI Onboarding &amp; Training Specialist</strong>, PatientFi
+                (2025 – 2026): designed the conversational logic for our customer
+                service AI across chat, email and voice, led the team's rollout of
+                Zendesk's AI tools, and wrote the SOPs and training for each one.
+              </li>
+              <li>
+                <strong>Customer Experience Agent</strong>, PatientFi (2024 – 2025):
+                handled patient-financing questions and took on AI tooling work
+                outside the role, which led to my first promotion.
+              </li>
+              <li>
+                <strong>Genius</strong>, Apple (2017 – 2024): troubleshot iPhone and
+                Mac hardware and software, handled complex escalations, and coached
+                teammates at the Genius Bar.
+              </li>
+            </ul>
           </article>
         </div>
 

@@ -173,14 +173,69 @@ nav {
 }
 
 /* ===== PROJECTS ===== */
-/* A grid of cards: two side by side, wrapping to one column on phones */
-.project-grid {
+/* Heading on the left, arrow buttons on the right */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-2);
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.carousel-buttons {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.carousel-button {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  place-items: center; /* centers the arrow icon */
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--surface-color);
+  color: var(--font-color);
+  cursor: pointer;
+}
+
+.carousel-button:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+/* At either end, the button that can't go any further fades out */
+.carousel-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* A row of cards that scrolls sideways. Part of the next card peeks
+   in from the right so it's clear there's more to see. */
+.project-carousel {
+  display: flex;
   gap: var(--spacing-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory; /* stops each scroll with a card lined up on the left */
+  scroll-behavior: smooth;
+  padding-bottom: var(--spacing-3); /* room for the scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.project-carousel:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 4px;
+  border-radius: var(--border-radius);
 }
 
 .project-card {
+  flex: 0 0 min(380px, 85%); /* fixed width: 380px, or 85% of the row on phones */
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   overflow: hidden; /* clips the image to the card's rounded corners */
@@ -229,6 +284,13 @@ nav {
   border-radius: 999px; /* fully rounded ends */
   color: var(--muted-color);
   font-size: 0.85rem;
+}
+
+/* How the project was built (Vibe Coded, Hand Coded): green so it stands out */
+.tags .tag-process {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-weight: 600;
 }
 
 .project-links {
@@ -288,9 +350,55 @@ nav {
   margin: 0;
 }
 
-.timeline-meta {
+.timeline-item .timeline-meta {
   color: var(--muted-color);
   font-size: 0.9rem;
+  margin-bottom: var(--spacing-1);
+}
+
+.timeline-item ul {
+  margin: var(--spacing-1) 0 0;
+  padding-left: var(--spacing-4);
+}
+
+.timeline-item li + li {
+  margin-top: var(--spacing-1);
+}
+
+/* Supporting items: a hollow dot and smaller text */
+.timeline-item-minor::before {
+  background-color: var(--background-color);
+  border: 2px solid var(--accent-color);
+  box-sizing: border-box;
+}
+
+.timeline-item-minor ul {
+  font-size: 0.95rem;
+}
+
+/* Checklist for course progress: green check = done */
+.timeline-item .progress-list {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.progress-list li + li {
+  margin-top: 0;
+}
+
+.progress-list li {
+  color: var(--muted-color);
+}
+
+.progress-list li.done {
+  color: var(--font-color);
+}
+
+.progress-list li.done i {
+  color: var(--accent-color);
 }
 
 /* ===== CONTACT ===== */
