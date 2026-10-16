@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dish | I Read It Somewhere</title>
+  <meta name="theme-color" content="#141517">
+  <meta name="description" content="Click the button for a random phrase I read somewhere.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+  <!-- Same fonts as the rest of the portfolio -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Proza+Libre:wght@700&display=swap">
+  <!-- Font Awesome: icons like <i class="fa-solid fa-shuffle"></i> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/i-read-it-somewhere.css">
+</head>
+<body>
+  <main>
+    <!-- Same nav as the other portfolio pages. -->
+    <nav>
+      <h2 id="logo"><a href="index.html">Dish</a></h2>
+      <ul class="navigation-items">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="index.html#skills">Skills</a></li>
+        <li><a href="index.html#experience">Experience</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h1>I Read It Somewhere</h1>
+      <p class="tagline">Click the button for a random phrase,
+         simply so you can say 
+        "I Read It Somewhere."</p>
+    </header>
+
+    <section class="card" aria-label="Random phrase">
+      <!--
+        This is where the phrase shows up. Your JavaScript will find it by its id
+        ("phrase") and change the text inside it.
+        aria-live="polite" makes screen readers read the new phrase out loud
+        whenever it changes.
+      -->
+      <p id="phrase" class="phrase" aria-live="polite">
+        Click the button to be enlightened.
+      </p>
+
+      <!-- Your JavaScript will find this button by its id ("phrase-btn") and listen for clicks. -->
+      <button id="phrase-btn" type="button" class="button">
+        <i class="fa-solid fa-shuffle" aria-hidden="true"></i> Show me a phrase
+      </button>
+    </section>
+  </main>
+
+  <!-- JavaScript goes at the end so the button and phrase exist before the script looks for them -->
+  <script src="js/i-read-it-somewhere.js"></script>
+</body>
+</html>
