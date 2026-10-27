@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dish | Episode Timer</title>
+  <meta name="theme-color" content="#141517">
+  <meta name="description" content="A countdown timer for recording a podcast episode, showing what to talk about in each segment.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏱️</text></svg>">
+  <!-- Same fonts as the rest of the portfolio -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Proza+Libre:wght@700&display=swap">
+  <!-- Font Awesome: icons like <i class="fa-solid fa-play"></i> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/episode-timer.css">
+</head>
+<body>
+  <main>
+    <!-- Same nav as the other portfolio pages. -->
+    <nav>
+      <h2 id="logo"><a href="index.html">Dish</a></h2>
+      <ul class="navigation-items">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="index.html#skills">Skills</a></li>
+        <li><a href="index.html#experience">Experience</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h1>Episode Timer</h1>
+      <p class="tagline">A segment-by-segment countdown for recording an episode.</p>
+    </header>
+
+    <!-- On wide screens (like an iPad sideways) the timer and run sheet sit side by side -->
+    <div class="layout">
+      <!--
+        The timer. js/episode-timer.js fills in everything with an id.
+        data-state tells the CSS which color to use:
+          "normal" = green, "warning" = yellow, "over" = red.
+        The JS also adds the class "is-paused" when the timer is paused partway through,
+        and data-flash ("red" / "white") for 3 seconds when a new segment starts.
+      -->
+      <section id="timer" class="timer" data-state="normal" aria-label="Episode timer">
+
+        <!-- aria-live makes screen readers announce the new segment when it changes -->
+        <h2 id="segment-title" class="segment-title" aria-live="polite">Cold open</h2>
+
+        <!-- The big countdown: time left in the current segment -->
+        <p class="countdown">
+          <span id="countdown">1:00</span>
+          <span id="countdown-label" class="countdown-label">left in segment</span>
+        </p>
+
+        <p id="segment-focus" class="segment-focus"></p>
+
+        <!--
+          The whole episode as one bar. Click or drag it to jump, like a video.
+          The JS adds a tick mark where each segment starts.
+          role="slider" tells screen readers it's something you can move.
+        -->
+        <div class="progress">
+          <div id="progress-bar" class="progress-bar" role="slider" tabindex="0" aria-label="Episode position"
+               aria-valuemin="0" aria-valuemax="3600" aria-valuenow="0">
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill"></div>
+              <div id="progress-ticks" class="progress-ticks"></div>
+            </div>
+            <div id="progress-thumb" class="progress-thumb"></div>
+            <div id="progress-hover" class="progress-hover" hidden></div>
+          </div>
+          <div class="progress-info">
+            <span><span id="elapsed">0:00</span> / <span id="total">60:00</span></span>
+            <span id="up-next" class="up-next"></span>
+          </div>
+        </div>
+
+        <!-- The playback buttons sit in the middle, with full screen off to the right (like a video player) -->
+        <div class="controls">
+          <div class="controls-main">
+            <button id="prev-btn" type="button" class="icon-button" aria-label="Previous segment" title="Previous segment (Shift + ←)">
+              <i class="fa-solid fa-backward-step" aria-hidden="true"></i>
+            </button>
+            <button id="back-btn" type="button" class="skip-button" aria-label="Back 30 seconds" title="Back 30 seconds (←)">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> 30s
+            </button>
+            <button id="play-btn" type="button" class="play-button">
+              <i id="play-icon" class="fa-solid fa-play" aria-hidden="true"></i>
+              <span id="play-label">Start</span>
+            </button>
+            <button id="forward-btn" type="button" class="skip-button" aria-label="Forward 30 seconds" title="Forward 30 seconds (→)">
+              30s <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+            </button>
+            <button id="next-btn" type="button" class="icon-button" aria-label="Next segment" title="Next segment (Shift + →)">
+              <i class="fa-solid fa-forward-step" aria-hidden="true"></i>
+            </button>
+          </div>
+          <button id="fullscreen-btn" type="button" class="icon-button" aria-label="Full screen" title="Full screen (F)">
+            <i class="fa-solid fa-expand" aria-hidden="true"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== RUN SHEET ===== -->
+      <!-- Every segment in order. Click one to jump to it. -->
+      <section class="run-sheet" aria-labelledby="run-sheet-heading">
+        <div class="run-sheet-header">
+          <h2 id="run-sheet-heading">Run sheet</h2>
+          <button id="reset-btn" type="button" class="text-button">
+            <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Reset
+          </button>
+        </div>
+        <ol id="segment-list" class="segment-list"></ol>
+        <p class="shortcuts">
+          <strong>Keyboard:</strong> <kbd>Space</kbd> play / pause · <kbd>←</kbd> <kbd>→</kbd> 30 seconds ·
+          <kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd> segments · <kbd>F</kbd> full screen
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <!-- JavaScript goes at the end so the elements exist before the script looks for them -->
+  <script src="js/episode-timer.js"></script>
+</body>
+</html>
